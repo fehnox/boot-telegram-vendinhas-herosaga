@@ -5,9 +5,9 @@ on:
     # Ajustes futuros do cron:
     # - 1 minuto:  "* * * * *"
     # - 2 minutos: "*/2 * * * *"
-    # - 5 minutos: "*/5 * * * *" (atual)
+    # - 3 minutos: "*/3 * * * *" (atual)
     # - 10 minutos: "*/10 * * * *"
-    - cron: "*/5 * * * *"
+    - cron: "*/3 * * * *"
   workflow_dispatch:
 
 permissions:

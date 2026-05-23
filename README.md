@@ -6,7 +6,7 @@ Worker Python para monitorar lojas do Herosaga, enviar alertas no Telegram e rod
 
 O ponto de entrada do monitor é [bot.py](bot.py) e o comando do worker é `python bot.py`.
 
-O script executa um ciclo único por processo, salva o histórico em [data/history.json](data/history.json) e encerra corretamente. Isso permite que o GitHub Actions rode a cada 5 minutos sem loop infinito.
+O script executa um ciclo único por processo, salva o histórico em [data/history.json](data/history.json) e encerra corretamente. Isso permite que o GitHub Actions rode a cada 3 minutos sem loop infinito.
 
 ## Requisitos
 
@@ -25,7 +25,7 @@ O workflow usa esses secrets no runtime e não expõe os valores no código.
 
 ## GitHub Actions
 
-O workflow em [.github/workflows/market.yml](.github/workflows/market.yml) roda automaticamente a cada 5 minutos com `ubuntu-latest`, instala Python 3.11, instala as dependências e executa [bot.py](bot.py).
+O workflow em [.github/workflows/market.yml](.github/workflows/market.yml) roda automaticamente a cada 3 minutos com `ubuntu-latest`, instala Python 3.11, instala as dependências e executa [bot.py](bot.py).
 
 Como o runner do GitHub Actions é temporário, o workflow também persiste [data/history.json](data/history.json) de volta no repositório quando o estado muda. Assim a próxima execução compara o mercado com o ciclo anterior.
 
