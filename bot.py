@@ -22,8 +22,10 @@ import logging
 import os
 import re
 import time
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+from typing import Iterable
 
 import requests
 from bs4 import BeautifulSoup
@@ -32,19 +34,50 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-SHOP_URL = os.getenv("SHOP_URL", "https://herosaga.com.br/?module=vending&action=viewshop&id=30313")
+DEFAULT_SHOP_URL = "https://herosaga.com.br/?module=vending&action=viewshop&id=30313"
 TOKEN = os.getenv("TOKEN") or os.getenv("BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID") or os.getenv("TELEGRAM_CHAT_ID")
+# `CHAT_IDS` prepara o envio para múltiplos usuários sem quebrar o fluxo atual.
+CHAT_IDS = [chat.strip() for chat in os.getenv("CHAT_IDS", "").split(",") if chat.strip()]
+if not CHAT_IDS and CHAT_ID:
+    CHAT_IDS = [CHAT_ID]
 DISCORD_WEBHOOK = os.getenv("DISCORD_WEBHOOK")
+SHOP_URL = os.getenv("SHOP_URL", DEFAULT_SHOP_URL)
+# `SHOP_URLS` permite monitorar mais de uma loja no futuro com o mesmo mecanismo.
+SHOP_URLS = [shop.strip() for shop in os.getenv("SHOP_URLS", "").split(",") if shop.strip()]
+if not SHOP_URLS:
+    SHOP_URLS = [SHOP_URL]
 
 COOLDOWN = int(os.getenv("NOTIFY_COOLDOWN", "300"))  # segundos entre notificações por item
 REQUEST_TIMEOUT = int(os.getenv("REQUEST_TIMEOUT", "20"))
 
 DATA_DIR = Path("data")
 HISTORY_FILE = DATA_DIR / "history.json"
+STATE_VERSION = 2
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
 logger = logging.getLogger("vend-monitor")
+
+
+@dataclass(frozen=True)
+class StoreTarget:
+    name: str
+    url: str
+
+
+def build_store_targets(urls: Iterable[str]) -> list[StoreTarget]:
+    targets = []
+    for index, url in enumerate(urls, start=1):
+        targets.append(StoreTarget(name=f"loja-{index}", url=url))
+    return targets
+
+
+def build_message_prefix(target: StoreTarget) -> str:
+    return f"Loja: {target.name}\nURL: {target.url}\n"
 
 
 def ensure_data_dir():
@@ -55,11 +88,14 @@ def load_history():
     ensure_data_dir()
     if HISTORY_FILE.exists():
         try:
-            return json.loads(HISTORY_FILE.read_text(encoding="utf-8"))
+            history = json.loads(HISTORY_FILE.read_text(encoding="utf-8"))
+            if history.get("version") != STATE_VERSION:
+                return {"version": STATE_VERSION, "stores": {}, "alerts": {}}
+            return history
         except Exception:
             logger.warning("Histórico corrompido ou inválido; reiniciando estado local")
-            return {"quantities": {}, "notified": {}}
-    return {"quantities": {}, "notified": {}}
+            return {"version": STATE_VERSION, "stores": {}, "alerts": {}}
+    return {"version": STATE_VERSION, "stores": {}, "alerts": {}}
 
 
 def save_history(history: dict):
@@ -135,22 +171,32 @@ def fetch_shop(url: str) -> str:
     return resp.text
 
 
-def send_telegram(text: str) -> bool:
-    if not TOKEN or not CHAT_ID:
+def telegram_api_request(method: str, payload: dict | None = None) -> requests.Response:
+    if not TOKEN:
+        raise RuntimeError("TOKEN ausente")
+
+    url = f"https://api.telegram.org/bot{TOKEN}/{method}"
+    return requests.post(url, json=payload or {}, timeout=10)
+
+
+def send_telegram(text: str, chat_ids: list[str] | None = None) -> bool:
+    recipients = chat_ids or CHAT_IDS
+    if not TOKEN or not recipients:
         logger.warning("Telegram não configurado; pulando envio")
         return False
-    url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
-    payload = {"chat_id": CHAT_ID, "text": text}
+    sent_any = False
     try:
-        r = requests.post(url, json=payload, timeout=10)
-        if r.ok:
-            logger.info("Alerta enviado")
-            return True
-        else:
-            logger.warning("Falha ao enviar Telegram: %s", r.text)
-            return False
+        for chat_id in recipients:
+            payload = {"chat_id": chat_id, "text": text, "disable_notification": True}
+            r = telegram_api_request("sendMessage", payload)
+            if r.ok:
+                logger.info("Alerta enviado")
+                sent_any = True
+            else:
+                logger.error("Erro Telegram: %s", r.text)
+        return sent_any
     except Exception as e:
-        logger.exception("Erro enviando Telegram: %s", e)
+        logger.exception("Erro Telegram: %s", e)
         return False
 
 
@@ -170,9 +216,44 @@ def send_discord(text: str) -> bool:
         return False
 
 
-def notify_sale(name: str, before: int, after: int) -> bool:
+def telegram_smoke_test() -> bool:
+    if not TOKEN or not CHAT_IDS:
+        logger.error("TOKEN e CHAT_ID são obrigatórios para o teste inicial do Telegram")
+        return False
+
+    try:
+        response = telegram_api_request("getMe")
+        response.raise_for_status()
+        test_message = "Teste de conectividade do monitor"
+        sent_response = telegram_api_request(
+            "sendMessage",
+            {"chat_id": CHAT_IDS[0], "text": test_message, "disable_notification": True},
+        )
+        sent_response.raise_for_status()
+
+        message_id = sent_response.json().get("result", {}).get("message_id")
+        if message_id:
+            try:
+                telegram_api_request("deleteMessage", {"chat_id": CHAT_IDS[0], "message_id": message_id}).raise_for_status()
+            except Exception:
+                logger.warning("Teste Telegram enviado, mas a remoção da mensagem falhou")
+
+        logger.info("Telegram conectado com sucesso")
+        return True
+    except Exception:
+        logger.exception("Erro Telegram no teste inicial de conectividade")
+        return False
+
+
+def notify_sale(target: StoreTarget, name: str, before: int, after: int) -> bool:
     now = datetime.utcnow().isoformat()
-    text = f"VENDA DETECTADA: {name}\nAntes: {before} -> Agora: {after}\nLoja: {SHOP_URL}\nHora(UTC): {now}"
+    text = (
+        f"VENDA DETECTADA\n"
+        f"{build_message_prefix(target)}"
+        f"Item: {name}\n"
+        f"Antes: {before} -> Agora: {after}\n"
+        f"Hora(UTC): {now}"
+    )
     telegram_sent = send_telegram(text)
     discord_sent = send_discord(text)
     if telegram_sent or discord_sent:
@@ -181,53 +262,90 @@ def notify_sale(name: str, before: int, after: int) -> bool:
     return False
 
 
-def check_once(history: dict) -> dict:
-    quantities = history.get("quantities", {})
-    notified = history.get("notified", {})
+def load_store_state(history: dict, target: StoreTarget) -> dict:
+    stores = history.setdefault("stores", {})
+    return stores.setdefault(target.url, {"quantities": {}, "last_alerts": {}})
 
-    logger.info("Verificando mercado")
-    html = fetch_shop(SHOP_URL)
+
+def should_alert(last_alerts: dict, key: str, now_ts: int) -> bool:
+    last_seen = int(last_alerts.get(key, 0))
+    return now_ts - last_seen >= COOLDOWN
+
+
+def register_alert(last_alerts: dict, key: str, now_ts: int):
+    last_alerts[key] = now_ts
+
+
+def inspect_store(target: StoreTarget, history: dict) -> dict:
+    logger.info("Carregando lojas: %s", target.name)
+    store_state = load_store_state(history, target)
+    quantities = store_state.setdefault("quantities", {})
+    last_alerts = store_state.setdefault("last_alerts", {})
+
+    logger.info("Verificando itens: %s", target.url)
+    html = fetch_shop(target.url)
     items = parse_shop(html)
+    changes = []
+
     if not items:
         logger.warning("Nenhum item detectado na página — verifique o parser ou a URL.")
-    else:
-        logger.info("Itens encontrados na loja: %d", len(items))
+        return {"items_found": 0, "changes": changes}
 
+    logger.info("Itens encontrados na loja %s: %d", target.name, len(items))
     now_ts = int(time.time())
-    changes = []
+
     for name, qty in items.items():
         logger.info("Item encontrado: %s | quantidade=%s", name, qty)
         prev = quantities.get(name)
         if prev is None:
             quantities[name] = qty
             continue
+
         if qty < prev:
-            last_notif = int(notified.get(name, 0))
-            if now_ts - last_notif >= COOLDOWN:
-                if notify_sale(name, prev, qty):
-                    notified[name] = now_ts
+            alert_key = f"{target.url}:{name}"
+            if should_alert(last_alerts, alert_key, now_ts):
+                if notify_sale(target, name, prev, qty):
+                    register_alert(last_alerts, alert_key, now_ts)
                     changes.append((name, prev, qty))
             else:
-                logger.debug("Venda detectada mas em cooldown para %s", name)
+                logger.warning("Mudança repetida em cooldown para %s", name)
+
         quantities[name] = qty
 
-    if changes:
-        logger.info("Notificadas %d venda(s)", len(changes))
+    if not changes:
+        logger.info("Nenhuma mudança encontrada em %s", target.name)
 
-    history["quantities"] = quantities
-    history["notified"] = notified
+    return {"items_found": len(items), "changes": changes}
+
+
+def check_once(history: dict) -> dict:
+    results = []
+    total_items = 0
+    total_changes = 0
+
+    for target in build_store_targets(SHOP_URLS):
+        try:
+            result = inspect_store(target, history)
+            results.append({"target": target.name, **result})
+            total_items += result["items_found"]
+            total_changes += len(result["changes"])
+        except requests.RequestException:
+            logger.exception("Erro de API ao consultar a loja %s", target.name)
+        except Exception:
+            logger.exception("Erro inesperado ao processar a loja %s", target.name)
+
+    history["version"] = STATE_VERSION
     save_history(history)
-    return {
-        "items_found": len(items),
-        "changes": changes,
-        "saved": True,
-    }
+    return {"items_found": total_items, "changes": total_changes, "results": results, "saved": True}
 
 
 def main():
-    logger.info("Monitor iniciado | loja=%s | cooldown=%ss", SHOP_URL, COOLDOWN)
-    if not TOKEN or not CHAT_ID:
+    logger.info("Monitor iniciado | lojas=%d | cooldown=%ss", len(SHOP_URLS), COOLDOWN)
+    if not TOKEN or not CHAT_IDS:
         logger.error("TOKEN e CHAT_ID são obrigatórios para enviar alertas no Telegram")
+        raise SystemExit(1)
+
+    if not telegram_smoke_test():
         raise SystemExit(1)
 
     history = load_history()
@@ -236,7 +354,7 @@ def main():
         logger.info(
             "Verificação concluída: %d item(ns) encontrados, %d mudança(s), histórico salvo=%s",
             result["items_found"],
-            len(result["changes"]),
+            result["changes"],
             result["saved"],
         )
         logger.info("Execução finalizada")

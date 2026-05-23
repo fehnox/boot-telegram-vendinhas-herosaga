@@ -58,10 +58,14 @@ Variáveis opcionais:
 
 ```env
 SHOP_URL=https://herosaga.com.br/?module=vending&action=viewshop&id=30313
+SHOP_URLS=
+CHAT_IDS=
 DISCORD_WEBHOOK=
 NOTIFY_COOLDOWN=300
 REQUEST_TIMEOUT=20
 ```
+
+Se `CHAT_IDS` estiver preenchido com uma lista separada por vírgulas, o bot envia alertas para vários usuários sem mudar o código.
 
 ## Testar localmente
 
