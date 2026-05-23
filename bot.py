@@ -1,24 +1,28 @@
 """
-Monitor de vendinha Herosaga
+Monitor de vendinha Herosaga.
 
-Uso: python bot.py
+Uso:
+    python bot.py
 
-Configurar `.env` com as variáveis:
+Variáveis de ambiente:
 - BOT_TOKEN: token do bot Telegram
 - TELEGRAM_CHAT_ID: chat id para enviar notificações
-- SHOP_URL: (opcional) url da lojinha — padrão já configurado
-- DISCORD_WEBHOOK: (opcional) webhook para enviar notificações ao Discord
+- SHOP_URL: url da lojinha
+- DISCORD_WEBHOOK: webhook opcional para futuras notificações no Discord
+- CHECK_INTERVAL: intervalo entre checagens, em segundos
+- NOTIFY_COOLDOWN: tempo mínimo entre alertas do mesmo item, em segundos
+- REQUEST_TIMEOUT: timeout das requisições HTTP, em segundos
+- ERROR_RETRY_DELAY: espera antes de tentar novamente após falha
 
-O script faz scraping da página da vendinha, salva histórico em `data/history.json`,
+O script faz scraping da página da vendinha, salva histórico em data/history.json,
 detecta quedas de quantidade (venda) e notifica via Telegram/Discord.
 """
 
-import os
-import time
 import json
-import re
 import logging
-import argparse
+import os
+import re
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -36,6 +40,8 @@ DISCORD_WEBHOOK = os.getenv("DISCORD_WEBHOOK")
 
 CHECK_INTERVAL = int(os.getenv("CHECK_INTERVAL", "60"))  # segundos
 COOLDOWN = int(os.getenv("NOTIFY_COOLDOWN", "300"))  # segundos entre notificações por item
+REQUEST_TIMEOUT = int(os.getenv("REQUEST_TIMEOUT", "20"))
+ERROR_RETRY_DELAY = int(os.getenv("ERROR_RETRY_DELAY", "60"))
 
 DATA_DIR = Path("data")
 HISTORY_FILE = DATA_DIR / "history.json"
@@ -45,7 +51,7 @@ logger = logging.getLogger("vend-monitor")
 
 
 def ensure_data_dir():
-    DATA_DIR.mkdir(exist_ok=True)
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def load_history():
@@ -54,6 +60,7 @@ def load_history():
         try:
             return json.loads(HISTORY_FILE.read_text(encoding="utf-8"))
         except Exception:
+            logger.warning("Histórico corrompido ou inválido; reiniciando estado local")
             return {"quantities": {}, "notified": {}}
     return {"quantities": {}, "notified": {}}
 
@@ -126,45 +133,57 @@ def parse_shop(html: str) -> dict:
 
 def fetch_shop(url: str) -> str:
     headers = {"User-Agent": "vend-monitor/1.0 (+https://github.com)"}
-    resp = requests.get(url, headers=headers, timeout=20)
+    resp = requests.get(url, headers=headers, timeout=REQUEST_TIMEOUT)
     resp.raise_for_status()
     return resp.text
 
 
-def send_telegram(text: str):
+def send_telegram(text: str) -> bool:
     if not BOT_TOKEN or not TELEGRAM_CHAT_ID:
-        logger.debug("Telegram não configurado; pulando envio")
-        return
+        logger.warning("Telegram não configurado; pulando envio")
+        return False
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
     payload = {"chat_id": TELEGRAM_CHAT_ID, "text": text}
     try:
         r = requests.post(url, json=payload, timeout=10)
-        if not r.ok:
+        if r.ok:
+            logger.info("Alerta enviado via Telegram")
+            return True
+        else:
             logger.warning("Falha ao enviar Telegram: %s", r.text)
+            return False
     except Exception as e:
         logger.exception("Erro enviando Telegram: %s", e)
+        return False
 
 
-def send_discord(text: str):
+def send_discord(text: str) -> bool:
     if not DISCORD_WEBHOOK:
-        return
+        return False
     try:
         r = requests.post(DISCORD_WEBHOOK, json={"content": text}, timeout=10)
-        if not r.ok:
+        if r.ok:
+            logger.info("Alerta enviado via Discord")
+            return True
+        else:
             logger.warning("Falha ao enviar Discord: %s", r.text)
+            return False
     except Exception:
         logger.exception("Erro enviando Discord")
+        return False
 
 
 def notify_sale(name: str, before: int, after: int):
     now = datetime.utcnow().isoformat()
-    text = f"🛒 VENDA DETECTADA: {name}\nAntes: {before} → Agora: {after}\nLoja: {SHOP_URL}\nHora(UTC): {now}"
+    text = f"VENDA DETECTADA: {name}\nAntes: {before} -> Agora: {after}\nLoja: {SHOP_URL}\nHora(UTC): {now}"
     logger.info(text)
-    send_telegram(text)
-    send_discord(text)
+    telegram_sent = send_telegram(text)
+    discord_sent = send_discord(text)
+    if telegram_sent or discord_sent:
+        logger.info("Alerta enviado para %s", name)
 
 
-def check_once(history: dict) -> bool:
+def check_once(history: dict) -> dict:
     quantities = history.get("quantities", {})
     notified = history.get("notified", {})
 
@@ -172,12 +191,15 @@ def check_once(history: dict) -> bool:
     items = parse_shop(html)
     if not items:
         logger.warning("Nenhum item detectado na página — verifique o parser ou a URL.")
+    else:
+        logger.info("Itens encontrados na loja: %d", len(items))
 
     now_ts = int(time.time())
     changes = []
     for name, qty in items.items():
         prev = quantities.get(name)
         if prev is None:
+            logger.info("Item encontrado: %s | quantidade=%s", name, qty)
             quantities[name] = qty
             continue
         if qty < prev:
@@ -204,32 +226,32 @@ def check_once(history: dict) -> bool:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Monitor de vendinha Herosaga")
-    parser.add_argument("--once", action="store_true", help="Executa uma checagem e encerra")
-    args = parser.parse_args()
-
-    logger.info("Monitor iniciando para %s", SHOP_URL)
+    logger.info(
+        "Monitoramento iniciado | loja=%s | intervalo=%ss | cooldown=%ss",
+        SHOP_URL,
+        CHECK_INTERVAL,
+        COOLDOWN,
+    )
     history = load_history()
-    if args.once:
+
+    while True:
+        sleep_for = CHECK_INTERVAL
         try:
             result = check_once(history)
             logger.info(
-                "Verificação única concluída: %d item(ns) encontrados, %d venda(s) detectada(s), histórico salvo=%s",
+                "Verificação concluída: %d item(ns) encontrados, %d mudança(s), histórico salvo=%s",
                 result["items_found"],
                 len(result["changes"]),
                 result["saved"],
             )
-        except Exception:
-            logger.exception("Erro na verificação única")
-        return
-
-    while True:
-        try:
-            check_once(history)
+        except requests.RequestException:
+            logger.exception("Erro da API/HTTP ao consultar a loja")
+            sleep_for = ERROR_RETRY_DELAY
         except Exception:
             logger.exception("Erro no loop de verificação")
+            sleep_for = ERROR_RETRY_DELAY
 
-        time.sleep(CHECK_INTERVAL)
+        time.sleep(sleep_for)
 
 
 if __name__ == "__main__":
