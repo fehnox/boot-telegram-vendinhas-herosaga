@@ -5,17 +5,16 @@ Uso:
     python bot.py
 
 Variáveis de ambiente:
-- BOT_TOKEN: token do bot Telegram
-- TELEGRAM_CHAT_ID: chat id para enviar notificações
+- TOKEN: token do bot Telegram
+- CHAT_ID: chat id para enviar notificações
 - SHOP_URL: url da lojinha
 - DISCORD_WEBHOOK: webhook opcional para futuras notificações no Discord
-- CHECK_INTERVAL: intervalo entre checagens, em segundos
 - NOTIFY_COOLDOWN: tempo mínimo entre alertas do mesmo item, em segundos
 - REQUEST_TIMEOUT: timeout das requisições HTTP, em segundos
-- ERROR_RETRY_DELAY: espera antes de tentar novamente após falha
 
 O script faz scraping da página da vendinha, salva histórico em data/history.json,
 detecta quedas de quantidade (venda) e notifica via Telegram/Discord.
+Ele executa um único ciclo por processo, o que o torna compatível com GitHub Actions.
 """
 
 import json
@@ -34,14 +33,12 @@ from dotenv import load_dotenv
 load_dotenv()
 
 SHOP_URL = os.getenv("SHOP_URL", "https://herosaga.com.br/?module=vending&action=viewshop&id=30313")
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+TOKEN = os.getenv("TOKEN") or os.getenv("BOT_TOKEN")
+CHAT_ID = os.getenv("CHAT_ID") or os.getenv("TELEGRAM_CHAT_ID")
 DISCORD_WEBHOOK = os.getenv("DISCORD_WEBHOOK")
 
-CHECK_INTERVAL = int(os.getenv("CHECK_INTERVAL", "60"))  # segundos
 COOLDOWN = int(os.getenv("NOTIFY_COOLDOWN", "300"))  # segundos entre notificações por item
 REQUEST_TIMEOUT = int(os.getenv("REQUEST_TIMEOUT", "20"))
-ERROR_RETRY_DELAY = int(os.getenv("ERROR_RETRY_DELAY", "60"))
 
 DATA_DIR = Path("data")
 HISTORY_FILE = DATA_DIR / "history.json"
@@ -139,15 +136,15 @@ def fetch_shop(url: str) -> str:
 
 
 def send_telegram(text: str) -> bool:
-    if not BOT_TOKEN or not TELEGRAM_CHAT_ID:
+    if not TOKEN or not CHAT_ID:
         logger.warning("Telegram não configurado; pulando envio")
         return False
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-    payload = {"chat_id": TELEGRAM_CHAT_ID, "text": text}
+    url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
+    payload = {"chat_id": CHAT_ID, "text": text}
     try:
         r = requests.post(url, json=payload, timeout=10)
         if r.ok:
-            logger.info("Alerta enviado via Telegram")
+            logger.info("Alerta enviado")
             return True
         else:
             logger.warning("Falha ao enviar Telegram: %s", r.text)
@@ -173,20 +170,22 @@ def send_discord(text: str) -> bool:
         return False
 
 
-def notify_sale(name: str, before: int, after: int):
+def notify_sale(name: str, before: int, after: int) -> bool:
     now = datetime.utcnow().isoformat()
     text = f"VENDA DETECTADA: {name}\nAntes: {before} -> Agora: {after}\nLoja: {SHOP_URL}\nHora(UTC): {now}"
-    logger.info(text)
     telegram_sent = send_telegram(text)
     discord_sent = send_discord(text)
     if telegram_sent or discord_sent:
         logger.info("Alerta enviado para %s", name)
+        return True
+    return False
 
 
 def check_once(history: dict) -> dict:
     quantities = history.get("quantities", {})
     notified = history.get("notified", {})
 
+    logger.info("Verificando mercado")
     html = fetch_shop(SHOP_URL)
     items = parse_shop(html)
     if not items:
@@ -197,17 +196,17 @@ def check_once(history: dict) -> dict:
     now_ts = int(time.time())
     changes = []
     for name, qty in items.items():
+        logger.info("Item encontrado: %s | quantidade=%s", name, qty)
         prev = quantities.get(name)
         if prev is None:
-            logger.info("Item encontrado: %s | quantidade=%s", name, qty)
             quantities[name] = qty
             continue
         if qty < prev:
             last_notif = int(notified.get(name, 0))
             if now_ts - last_notif >= COOLDOWN:
-                notify_sale(name, prev, qty)
-                notified[name] = now_ts
-                changes.append((name, prev, qty))
+                if notify_sale(name, prev, qty):
+                    notified[name] = now_ts
+                    changes.append((name, prev, qty))
             else:
                 logger.debug("Venda detectada mas em cooldown para %s", name)
         quantities[name] = qty
@@ -226,32 +225,27 @@ def check_once(history: dict) -> dict:
 
 
 def main():
-    logger.info(
-        "Monitoramento iniciado | loja=%s | intervalo=%ss | cooldown=%ss",
-        SHOP_URL,
-        CHECK_INTERVAL,
-        COOLDOWN,
-    )
+    logger.info("Monitor iniciado | loja=%s | cooldown=%ss", SHOP_URL, COOLDOWN)
+    if not TOKEN or not CHAT_ID:
+        logger.error("TOKEN e CHAT_ID são obrigatórios para enviar alertas no Telegram")
+        raise SystemExit(1)
+
     history = load_history()
-
-    while True:
-        sleep_for = CHECK_INTERVAL
-        try:
-            result = check_once(history)
-            logger.info(
-                "Verificação concluída: %d item(ns) encontrados, %d mudança(s), histórico salvo=%s",
-                result["items_found"],
-                len(result["changes"]),
-                result["saved"],
-            )
-        except requests.RequestException:
-            logger.exception("Erro da API/HTTP ao consultar a loja")
-            sleep_for = ERROR_RETRY_DELAY
-        except Exception:
-            logger.exception("Erro no loop de verificação")
-            sleep_for = ERROR_RETRY_DELAY
-
-        time.sleep(sleep_for)
+    try:
+        result = check_once(history)
+        logger.info(
+            "Verificação concluída: %d item(ns) encontrados, %d mudança(s), histórico salvo=%s",
+            result["items_found"],
+            len(result["changes"]),
+            result["saved"],
+        )
+        logger.info("Execução finalizada")
+    except requests.RequestException:
+        logger.exception("Erro da API/HTTP ao consultar o mercado")
+        raise SystemExit(1)
+    except Exception:
+        logger.exception("Erro na execução do monitor")
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":
