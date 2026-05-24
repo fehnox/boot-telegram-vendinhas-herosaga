@@ -88,6 +88,8 @@ Se `CHAT_IDS` estiver preenchido com uma lista separada por vírgulas, o bot env
 
 Na VPS Ubuntu, o worker pode ser mantido em `tmux` com o script [scripts/run_vps_worker.sh](scripts/run_vps_worker.sh). Ele faz `git pull --ff-only` antes de cada ciclo, então qualquer atualização enviada para o GitHub, incluindo [config/shop_urls.txt](config/shop_urls.txt), chega na VPS automaticamente no próximo ciclo.
 
+O intervalo do loop na VPS é controlado por `LOOP_SECONDS` (padrão: `30`).
+
 Exemplo:
 
 ```bash
