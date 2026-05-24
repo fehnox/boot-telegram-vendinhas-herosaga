@@ -9,6 +9,7 @@ Variáveis de ambiente:
 - CHAT_ID: chat id para enviar notificações
 - SHOP_URL: url da lojinha
 - DISCORD_WEBHOOK: webhook opcional para futuras notificações no Discord
+- DISCORD_MESSAGE: texto personalizado opcional para mensagens no Discord
 - NOTIFY_COOLDOWN: tempo mínimo entre alertas do mesmo item, em segundos
 - REQUEST_TIMEOUT: timeout das requisições HTTP, em segundos
 
@@ -25,7 +26,6 @@ import time
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Iterable
 
 import requests
 from bs4 import BeautifulSoup
@@ -49,32 +49,69 @@ CHAT_IDS = [chat.strip() for chat in os.getenv("CHAT_IDS", "").split(",") if cha
 if not CHAT_IDS and CHAT_ID:
     CHAT_IDS = [CHAT_ID]
 DISCORD_WEBHOOK = os.getenv("DISCORD_WEBHOOK")
+DISCORD_MESSAGE = os.getenv("DISCORD_MESSAGE", "").strip()
 SHOP_URL = os.getenv("SHOP_URL", DEFAULT_SHOP_URL)
-SHOP_URLS = []
+STORE_TARGETS = []
 
 
-def load_shop_urls() -> list[str]:
+@dataclass(frozen=True)
+class StoreTarget:
+    name: str
+    url: str
+
+
+def parse_store_target(line: str, index: int) -> StoreTarget | None:
+    raw = line.strip()
+    if not raw:
+        return None
+
+    if "|" in raw:
+        parts = [part.strip() for part in raw.split("|", 1)]
+        name = parts[0] or f"loja-{index}"
+        url = parts[1]
+    else:
+        name = f"loja-{index}"
+        url = raw
+
+    if not url:
+        return None
+
+    return StoreTarget(name=name, url=url)
+
+
+def load_store_targets() -> list[StoreTarget]:
     env_value = os.getenv("SHOP_URLS", "").strip()
     if env_value:
-        urls = [shop.strip() for shop in env_value.split(",") if shop.strip()]
-        if urls:
-            return urls
+        targets = []
+        raw_items = []
+        for line in env_value.splitlines():
+            raw_items.extend([part.strip() for part in line.split(",") if part.strip()])
+
+        for raw in raw_items:
+            target = parse_store_target(raw, len(targets) + 1)
+            if target:
+                targets.append(target)
+
+        if targets:
+            return targets
 
     if SHOP_URLS_FILE.exists():
-        urls = []
+        targets = []
         for line in SHOP_URLS_FILE.read_text(encoding="utf-8").splitlines():
             line = line.strip()
             if not line or line.startswith("#"):
                 continue
-            urls.append(line)
-        if urls:
-            return urls
+            target = parse_store_target(line, len(targets) + 1)
+            if target:
+                targets.append(target)
+        if targets:
+            return targets
 
     fallback = (os.getenv("SHOP_URL", DEFAULT_SHOP_URL) or DEFAULT_SHOP_URL).strip()
-    return [fallback]
+    return [StoreTarget(name="loja-1", url=fallback)]
 
 
-SHOP_URLS = load_shop_urls()
+STORE_TARGETS = load_store_targets()
 
 COOLDOWN = int(os.getenv("NOTIFY_COOLDOWN", "300"))  # segundos entre notificações por item
 REQUEST_TIMEOUT = int(os.getenv("REQUEST_TIMEOUT", "20"))
@@ -86,19 +123,6 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 logger = logging.getLogger("vend-monitor")
-
-
-@dataclass(frozen=True)
-class StoreTarget:
-    name: str
-    url: str
-
-
-def build_store_targets(urls: Iterable[str]) -> list[StoreTarget]:
-    targets = []
-    for index, url in enumerate(urls, start=1):
-        targets.append(StoreTarget(name=f"loja-{index}", url=url))
-    return targets
 
 
 def build_message_prefix(target: StoreTarget) -> str:
@@ -123,7 +147,7 @@ def load_history():
                 if isinstance(history.get("stores"), dict):
                     migrated["stores"] = history.get("stores", {})
                 elif history.get("quantities") is not None or history.get("notified") is not None:
-                    legacy_store_key = SHOP_URLS[0] if SHOP_URLS else SHOP_URL
+                    legacy_store_key = STORE_TARGETS[0].url if STORE_TARGETS else SHOP_URL
                     migrated["stores"][legacy_store_key] = {
                         "quantities": history.get("quantities", {}),
                         "last_alerts": history.get("notified", {}),
@@ -245,11 +269,26 @@ def send_telegram(text: str, chat_ids: list[str] | None = None) -> bool:
         return False
 
 
+def build_discord_message(default_text: str) -> str:
+    if not DISCORD_MESSAGE:
+        return default_text
+
+    message = DISCORD_MESSAGE
+    replacements = {
+        "{default}": default_text,
+        "{text}": default_text,
+    }
+    for key, value in replacements.items():
+        message = message.replace(key, value)
+    return message or default_text
+
+
 def send_discord(text: str) -> bool:
     if not DISCORD_WEBHOOK:
         return False
     try:
-        r = requests.post(DISCORD_WEBHOOK, json={"content": text}, timeout=10)
+        payload_text = build_discord_message(text)
+        r = requests.post(DISCORD_WEBHOOK, json={"content": payload_text}, timeout=10)
         if r.ok:
             logger.info("Alerta enviado via Discord")
             return True
@@ -381,7 +420,7 @@ def check_once(history: dict) -> dict:
     total_items = 0
     total_changes = 0
 
-    for target in build_store_targets(SHOP_URLS):
+    for target in STORE_TARGETS:
         try:
             result = inspect_store(target, history)
             results.append({"target": target.name, **result})
@@ -398,7 +437,7 @@ def check_once(history: dict) -> dict:
 
 
 def main():
-    logger.info("Monitor iniciado | lojas=%d | cooldown=%ss", len(SHOP_URLS), COOLDOWN)
+    logger.info("Monitor iniciado | lojas=%d | cooldown=%ss", len(STORE_TARGETS), COOLDOWN)
     if not TOKEN or not CHAT_IDS:
         logger.error("TOKEN e CHAT_ID são obrigatórios para enviar alertas no Telegram")
         raise SystemExit(1)

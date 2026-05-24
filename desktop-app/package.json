@@ -1,0 +1,12 @@
+{
+  "name": "herosaga-monitor-desktop",
+  "version": "1.0.0",
+  "description": "Aplicativo desktop para gerenciar lojas e notificações do monitor HeroSaga",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {
+    "electron": "^31.0.0"
+  }
+}

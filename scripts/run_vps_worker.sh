@@ -11,7 +11,20 @@ fi
 cd "$ROOT_DIR"
 
 while true; do
+  HISTORY_BACKUP="$(mktemp)"
+  HISTORY_PRESENT=0
+  if [ -f data/history.json ]; then
+    cp data/history.json "$HISTORY_BACKUP"
+    HISTORY_PRESENT=1
+  fi
+
+  rm -f data/history.json
   git pull --ff-only
+
+  if [ "$HISTORY_PRESENT" -eq 1 ] && [ -f "$HISTORY_BACKUP" ]; then
+    mv "$HISTORY_BACKUP" data/history.json
+  fi
+
   . .venv/bin/activate
   python3 bot.py
   sleep "$LOOP_SECONDS"
