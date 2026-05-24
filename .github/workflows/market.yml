@@ -47,6 +47,7 @@ jobs:
         env:
           TOKEN: ${{ secrets.TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         run: python bot.py
 
       - name: Persist history changes

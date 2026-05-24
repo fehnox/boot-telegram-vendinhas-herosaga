@@ -1,13 +1,19 @@
 {
-  "quantities": {
-    "ID Nome Refinamento Slots Slot 1 Slot 2 Slot 3 Slot Random options Preço Quantidade": 4,
-    "300469 Melibe Slug Card Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 11,000 c": 1,
-    "300509 Letterster Card Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 10,000 c": 1,
-    "300512 Ice Seahorse Card Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 3,400 c": 1,
-    "300222 Fire Wind Kite Card Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 10,000 c": 1,
-    "300460 Jormungandr Guardian Card Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 800 c": 1,
-    "300516 Yoster Collector Card Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 400 c": 2,
-    "Hero Saga": 2025
+  "version": 2,
+  "stores": {
+    "https://herosaga.com.br/?module=vending&action=viewshop&id=30313": {
+      "quantities": {
+        "ID Nome Refinamento Slots Slot 1 Slot 2 Slot 3 Slot Random options Preço Quantidade": 4,
+        "300469 Melibe Slug Card Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 11,000 c": 1,
+        "300509 Letterster Card Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 10,000 c": 1,
+        "300512 Ice Seahorse Card Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 3,400 c": 1,
+        "300222 Fire Wind Kite Card Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 10,000 c": 1,
+        "300460 Jormungandr Guardian Card Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 800 c": 1,
+        "300516 Yoster Collector Card Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 400 c": 2,
+        "Hero Saga": 2025
+      },
+      "last_alerts": {}
+    }
   },
-  "notified": {}
+  "alerts": {}
 }

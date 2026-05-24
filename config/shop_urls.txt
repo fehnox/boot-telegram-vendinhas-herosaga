@@ -1,3 +1,7 @@
-# Uma URL por linha.
-# Este arquivo é versionado no Git para manter a VPS sempre atualizada com `git pull`.
-# Cole aqui as lojas que você quer monitorar.
+# Formato: nome|url
+# Se não quiser nome, pode deixar só a URL.
+
+fehnox3|https://herosaga.com.br/?module=vending&action=viewshop&id=34107
+fehnox1|https://herosaga.com.br/?module=vending&action=viewshop&id=34093
+fehnox5|https://herosaga.com.br/?module=vending&action=viewshop&id=33230
+fehnox2|https://herosaga.com.br/?module=vending&action=viewshop&id=34088
