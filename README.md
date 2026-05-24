@@ -1,12 +1,12 @@
 # boot-telegram-vendinhas-herosaga
 
-Worker Python para monitorar lojas do Herosaga, enviar alertas no Telegram e rodar sem PC ligado usando GitHub Actions.
+Worker Python para monitorar lojas do Herosaga, enviar alertas no Telegram e rodar sem PC ligado usando GitHub Actions ou uma VPS com `git pull`.
 
 ## Como funciona
 
 O ponto de entrada do monitor é [bot.py](bot.py) e o comando do worker é `python bot.py`.
 
-O script executa um ciclo único por processo, salva o histórico em [data/history.json](data/history.json) e encerra corretamente. Isso permite que o GitHub Actions rode a cada 3 minutos sem loop infinito.
+O script executa um ciclo único por processo, salva o histórico em [data/history.json](data/history.json) e encerra corretamente. Isso permite que o GitHub Actions rode a cada 3 minutos sem loop infinito e também facilita o uso em VPS com `tmux`.
 
 ## Requisitos
 
@@ -22,6 +22,19 @@ O script executa um ciclo único por processo, salva o histórico em [data/histo
    - `CHAT_ID`
 
 O workflow usa esses secrets no runtime e não expõe os valores no código.
+
+## Configurar lojas
+
+As lojas monitoradas ficam em [config/shop_urls.txt](config/shop_urls.txt), uma URL por linha.
+
+Se você quiser sobrescrever isso localmente, ainda pode usar a variável `SHOP_URLS` no `.env`.
+
+Exemplo:
+
+```txt
+https://herosaga.com.br/?module=vending&action=viewshop&id=30313
+https://herosaga.com.br/?module=vending&action=viewshop&id=30314
+```
 
 ## GitHub Actions
 
@@ -65,7 +78,23 @@ NOTIFY_COOLDOWN=300
 REQUEST_TIMEOUT=20
 ```
 
+Se quiser alerta no Discord pelo GitHub Actions, crie também o secret `DISCORD_WEBHOOK`.
+
+Se você alterar [config/shop_urls.txt](config/shop_urls.txt) e fizer `git push`, a VPS atualiza com `git pull` e passa a ler as novas lojas no próximo ciclo do `tmux`.
+
 Se `CHAT_IDS` estiver preenchido com uma lista separada por vírgulas, o bot envia alertas para vários usuários sem mudar o código.
+
+## Rodar na VPS
+
+Na VPS Ubuntu, o worker pode ser mantido em `tmux` com o script [scripts/run_vps_worker.sh](scripts/run_vps_worker.sh). Ele faz `git pull --ff-only` antes de cada ciclo, então qualquer atualização enviada para o GitHub, incluindo [config/shop_urls.txt](config/shop_urls.txt), chega na VPS automaticamente no próximo ciclo.
+
+Exemplo:
+
+```bash
+cd /home/ubuntu/boot-telegram-vendinhas-herosaga
+tmux new -s bot
+bash scripts/run_vps_worker.sh
+```
 
 ## Testar localmente
 

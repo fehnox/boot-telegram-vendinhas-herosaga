@@ -32,27 +32,52 @@ from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 
 
-load_dotenv()
+ROOT_DIR = Path(__file__).resolve().parent
+CONFIG_DIR = ROOT_DIR / "config"
+SHOP_URLS_FILE = CONFIG_DIR / "shop_urls.txt"
+DATA_DIR = ROOT_DIR / "data"
+HISTORY_FILE = DATA_DIR / "history.json"
+
+load_dotenv(ROOT_DIR / ".env")
 
 DEFAULT_SHOP_URL = "https://herosaga.com.br/?module=vending&action=viewshop&id=30313"
-TOKEN = os.getenv("TOKEN") or os.getenv("BOT_TOKEN")
-CHAT_ID = os.getenv("CHAT_ID") or os.getenv("TELEGRAM_CHAT_ID")
+# Prefere as variáveis usadas no .env local, sem perder compatibilidade com o GitHub Actions.
+TOKEN = os.getenv("BOT_TOKEN") or os.getenv("TOKEN")
+CHAT_ID = os.getenv("TELEGRAM_CHAT_ID") or os.getenv("CHAT_ID")
 # `CHAT_IDS` prepara o envio para múltiplos usuários sem quebrar o fluxo atual.
 CHAT_IDS = [chat.strip() for chat in os.getenv("CHAT_IDS", "").split(",") if chat.strip()]
 if not CHAT_IDS and CHAT_ID:
     CHAT_IDS = [CHAT_ID]
 DISCORD_WEBHOOK = os.getenv("DISCORD_WEBHOOK")
 SHOP_URL = os.getenv("SHOP_URL", DEFAULT_SHOP_URL)
-# `SHOP_URLS` permite monitorar mais de uma loja no futuro com o mesmo mecanismo.
-SHOP_URLS = [shop.strip() for shop in os.getenv("SHOP_URLS", "").split(",") if shop.strip()]
-if not SHOP_URLS:
-    SHOP_URLS = [SHOP_URL]
+SHOP_URLS = []
+
+
+def load_shop_urls() -> list[str]:
+    env_value = os.getenv("SHOP_URLS", "").strip()
+    if env_value:
+        urls = [shop.strip() for shop in env_value.split(",") if shop.strip()]
+        if urls:
+            return urls
+
+    if SHOP_URLS_FILE.exists():
+        urls = []
+        for line in SHOP_URLS_FILE.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            urls.append(line)
+        if urls:
+            return urls
+
+    fallback = (os.getenv("SHOP_URL", DEFAULT_SHOP_URL) or DEFAULT_SHOP_URL).strip()
+    return [fallback]
+
+
+SHOP_URLS = load_shop_urls()
 
 COOLDOWN = int(os.getenv("NOTIFY_COOLDOWN", "300"))  # segundos entre notificações por item
 REQUEST_TIMEOUT = int(os.getenv("REQUEST_TIMEOUT", "20"))
-
-DATA_DIR = Path("data")
-HISTORY_FILE = DATA_DIR / "history.json"
 STATE_VERSION = 2
 
 logging.basicConfig(
@@ -89,8 +114,28 @@ def load_history():
     if HISTORY_FILE.exists():
         try:
             history = json.loads(HISTORY_FILE.read_text(encoding="utf-8"))
-            if history.get("version") != STATE_VERSION:
-                return {"version": STATE_VERSION, "stores": {}, "alerts": {}}
+            if history.get("version") == STATE_VERSION:
+                return history
+
+            if isinstance(history, dict) and ("stores" in history or "quantities" in history or "notified" in history):
+                migrated = {"version": STATE_VERSION, "stores": {}, "alerts": {}}
+
+                if isinstance(history.get("stores"), dict):
+                    migrated["stores"] = history.get("stores", {})
+                elif history.get("quantities") is not None or history.get("notified") is not None:
+                    legacy_store_key = SHOP_URLS[0] if SHOP_URLS else SHOP_URL
+                    migrated["stores"][legacy_store_key] = {
+                        "quantities": history.get("quantities", {}),
+                        "last_alerts": history.get("notified", {}),
+                    }
+
+                if isinstance(history.get("alerts"), dict):
+                    migrated["alerts"] = history.get("alerts", {})
+
+                logger.info("Histórico migrado para o formato atual")
+                save_history(migrated)
+                return migrated
+
             return history
         except Exception:
             logger.warning("Histórico corrompido ou inválido; reiniciando estado local")
@@ -311,6 +356,19 @@ def inspect_store(target: StoreTarget, history: dict) -> dict:
                 logger.warning("Mudança repetida em cooldown para %s", name)
 
         quantities[name] = qty
+
+    missing_items = [name for name in quantities.keys() if name not in items]
+    for name in missing_items:
+        prev = quantities.get(name, 0)
+        if prev > 0:
+            alert_key = f"{target.url}:{name}"
+            if should_alert(last_alerts, alert_key, now_ts):
+                if notify_sale(target, name, prev, 0):
+                    register_alert(last_alerts, alert_key, now_ts)
+                    changes.append((name, prev, 0))
+            else:
+                logger.warning("Mudança repetida em cooldown para %s", name)
+        quantities[name] = 0
 
     if not changes:
         logger.info("Nenhuma mudança encontrada em %s", target.name)

@@ -1,0 +1,3 @@
+# Uma URL por linha.
+# Este arquivo é versionado no Git para manter a VPS sempre atualizada com `git pull`.
+# Cole aqui as lojas que você quer monitorar.
