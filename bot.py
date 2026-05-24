@@ -26,6 +26,7 @@ import time
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+from urllib.parse import urljoin
 
 import requests
 from bs4 import BeautifulSoup
@@ -52,6 +53,7 @@ DISCORD_WEBHOOK = os.getenv("DISCORD_WEBHOOK")
 DISCORD_MESSAGE = os.getenv("DISCORD_MESSAGE", "").strip()
 SHOP_URL = os.getenv("SHOP_URL", DEFAULT_SHOP_URL)
 STORE_TARGETS = []
+BASE_URL = "https://herosaga.com.br/"
 
 
 @dataclass(frozen=True)
@@ -113,7 +115,7 @@ def load_store_targets() -> list[StoreTarget]:
 
 STORE_TARGETS = load_store_targets()
 
-COOLDOWN = int(os.getenv("NOTIFY_COOLDOWN", "300"))  # segundos entre notificações por item
+COOLDOWN = int(os.getenv("NOTIFY_COOLDOWN", "30"))  # segundos entre notificações por item
 REQUEST_TIMEOUT = int(os.getenv("REQUEST_TIMEOUT", "20"))
 STATE_VERSION = 2
 
@@ -233,6 +235,54 @@ def parse_shop(html: str) -> dict:
     return items
 
 
+@dataclass(frozen=True)
+class ShopItem:
+    name: str
+    quantity: int
+    price: str | None = None
+    image_url: str | None = None
+
+
+def parse_shop_inventory(html: str) -> dict[str, ShopItem]:
+    soup = BeautifulSoup(html, "html.parser")
+    inventory: dict[str, ShopItem] = {}
+
+    for tr in soup.find_all("tr"):
+        texts = [t.strip() for t in tr.stripped_strings if t.strip()]
+        if len(texts) < 2:
+            continue
+
+        if not re.fullmatch(r"\d+", texts[0]):
+            continue
+
+        item_name = texts[1].strip()
+        if not item_name:
+            continue
+
+        qty_match = re.search(r"(\d+)(?!.*\d)", " ".join(texts))
+        if not qty_match:
+            continue
+
+        quantity = int(qty_match.group(1))
+        price = texts[-2].strip() if len(texts) >= 2 else None
+        if price and re.fullmatch(r"\d+", price):
+            price = None
+
+        image_url = None
+        img = tr.find("img")
+        if img and img.get("src"):
+            image_url = urljoin(BASE_URL, img.get("src"))
+
+        inventory[item_name] = ShopItem(
+            name=item_name,
+            quantity=quantity,
+            price=price,
+            image_url=image_url,
+        )
+
+    return inventory
+
+
 def fetch_shop(url: str) -> str:
     headers = {"User-Agent": "vend-monitor/1.0 (+https://github.com)"}
     resp = requests.get(url, headers=headers, timeout=REQUEST_TIMEOUT)
@@ -248,7 +298,7 @@ def telegram_api_request(method: str, payload: dict | None = None) -> requests.R
     return requests.post(url, json=payload or {}, timeout=10)
 
 
-def send_telegram(text: str, chat_ids: list[str] | None = None) -> bool:
+def send_telegram(text: str, chat_ids: list[str] | None = None, image_url: str | None = None) -> bool:
     recipients = chat_ids or CHAT_IDS
     if not TOKEN or not recipients:
         logger.warning("Telegram não configurado; pulando envio")
@@ -256,8 +306,21 @@ def send_telegram(text: str, chat_ids: list[str] | None = None) -> bool:
     sent_any = False
     try:
         for chat_id in recipients:
-            payload = {"chat_id": chat_id, "text": text, "disable_notification": True}
-            r = telegram_api_request("sendMessage", payload)
+            if image_url:
+                payload = {
+                    "chat_id": chat_id,
+                    "photo": image_url,
+                    "caption": text[:1024],
+                    "disable_notification": True,
+                }
+                r = telegram_api_request("sendPhoto", payload)
+                if not r.ok:
+                    logger.warning("Telegram rejeitou a foto; reenviando como texto")
+                    payload = {"chat_id": chat_id, "text": text, "disable_notification": True}
+                    r = telegram_api_request("sendMessage", payload)
+            else:
+                payload = {"chat_id": chat_id, "text": text, "disable_notification": True}
+                r = telegram_api_request("sendMessage", payload)
             if r.ok:
                 logger.info("Alerta enviado")
                 sent_any = True
@@ -283,12 +346,15 @@ def build_discord_message(default_text: str) -> str:
     return message or default_text
 
 
-def send_discord(text: str) -> bool:
+def send_discord(text: str, image_url: str | None = None) -> bool:
     if not DISCORD_WEBHOOK:
         return False
     try:
         payload_text = build_discord_message(text)
-        r = requests.post(DISCORD_WEBHOOK, json={"content": payload_text}, timeout=10)
+        payload: dict = {"content": payload_text}
+        if image_url:
+            payload["embeds"] = [{"image": {"url": image_url}}]
+        r = requests.post(DISCORD_WEBHOOK, json=payload, timeout=10)
         if r.ok:
             logger.info("Alerta enviado via Discord")
             return True
@@ -329,17 +395,23 @@ def telegram_smoke_test() -> bool:
         return False
 
 
-def notify_sale(target: StoreTarget, name: str, before: int, after: int) -> bool:
-    now = datetime.utcnow().isoformat()
-    text = (
-        f"VENDA DETECTADA\n"
-        f"{build_message_prefix(target)}"
+def format_sale_message(target: StoreTarget, name: str, before: int, after: int, price: str | None = None) -> str:
+    now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    price_text = price or "-"
+    return (
+        f"🛒 VENDA DETECTADA\n"
+        f"Loja: {target.name}\n"
         f"Item: {name}\n"
-        f"Antes: {before} -> Agora: {after}\n"
-        f"Hora(UTC): {now}"
+        f"Quantidade: {after}\n"
+        f"Preço: {price_text}\n"
+        f"Hora: {now}"
     )
-    telegram_sent = send_telegram(text)
-    discord_sent = send_discord(text)
+
+
+def notify_sale(target: StoreTarget, name: str, before: int, after: int, price: str | None = None, image_url: str | None = None) -> bool:
+    text = format_sale_message(target, name, before, after, price)
+    telegram_sent = send_telegram(text, image_url=image_url)
+    discord_sent = send_discord(text, image_url=image_url)
     if telegram_sent or discord_sent:
         logger.info("Alerta enviado para %s", name)
         return True
@@ -368,7 +440,8 @@ def inspect_store(target: StoreTarget, history: dict) -> dict:
 
     logger.info("Verificando itens: %s", target.url)
     html = fetch_shop(target.url)
-    items = parse_shop(html)
+    inventory = parse_shop_inventory(html)
+    items = {name: item.quantity for name, item in inventory.items()}
     changes = []
 
     if not items:
@@ -388,7 +461,8 @@ def inspect_store(target: StoreTarget, history: dict) -> dict:
         if qty < prev:
             alert_key = f"{target.url}:{name}"
             if should_alert(last_alerts, alert_key, now_ts):
-                if notify_sale(target, name, prev, qty):
+                item = inventory.get(name)
+                if notify_sale(target, name, prev, qty, price=item.price if item else None, image_url=item.image_url if item else None):
                     register_alert(last_alerts, alert_key, now_ts)
                     changes.append((name, prev, qty))
             else:
@@ -402,7 +476,8 @@ def inspect_store(target: StoreTarget, history: dict) -> dict:
         if prev > 0:
             alert_key = f"{target.url}:{name}"
             if should_alert(last_alerts, alert_key, now_ts):
-                if notify_sale(target, name, prev, 0):
+                item = inventory.get(name)
+                if notify_sale(target, name, prev, 0, price=item.price if item else None, image_url=item.image_url if item else None):
                     register_alert(last_alerts, alert_key, now_ts)
                     changes.append((name, prev, 0))
             else:
