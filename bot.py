@@ -432,15 +432,38 @@ def send_telegram(text: str, chat_ids: list[str] | None = None, image_url: str |
         return False
 
 
-def build_discord_message(default_text: str) -> str:
+def build_discord_message(
+    default_text: str,
+    target: StoreTarget,
+    name: str,
+    quantity: int,
+    price: str | None,
+    now: str,
+    currency: str,
+    image_url: str | None = None,
+    hero_points: str | None = None,
+) -> str:
     if not DISCORD_MESSAGE:
         return default_text
 
-    message = DISCORD_MESSAGE
+    resolved_hero_points = hero_points or (price or "-")
+
     replacements = {
         "{default}": default_text,
         "{text}": default_text,
+        "{store}": target.name,
+        "{shop}": target.name,
+        "{currency}": currency,
+        "{coin}": currency,
+        "{item}": name,
+        "{quantity}": str(quantity),
+        "{price}": price or "-",
+        "{time}": now,
+        "{hero_points}": resolved_hero_points,
+        "{img_url}": image_url or "",
     }
+
+    message = DISCORD_MESSAGE
     for key, value in replacements.items():
         message = message.replace(key, value)
     return message or default_text
@@ -487,8 +510,7 @@ def send_discord(text: str, image_url: str | None = None) -> bool:
     if not DISCORD_WEBHOOK:
         return False
     try:
-        payload_text = build_discord_message(text)
-        payload: dict = {"content": payload_text}
+        payload: dict = {"content": text}
         if image_url:
             payload["embeds"] = [{"image": {"url": image_url}}]
         r = requests.post(DISCORD_WEBHOOK, json=payload, timeout=10)
@@ -555,7 +577,17 @@ def notify_sale(
         image_url=image_url,
         hero_points=hero_points,
     )
-    discord_text = build_discord_message(default_text)
+    discord_text = build_discord_message(
+        default_text,
+        target,
+        name,
+        after,
+        price,
+        now,
+        currency,
+        image_url=image_url,
+        hero_points=hero_points,
+    )
     telegram_sent = send_telegram(telegram_text, image_url=image_url)
     discord_sent = send_discord(discord_text, image_url=image_url)
     if telegram_sent or discord_sent:
@@ -590,7 +622,17 @@ def run_smoke_test() -> int:
         image_url=None,
         hero_points="18,000",
     )
-    discord_text = build_discord_message(default_text)
+    discord_text = build_discord_message(
+        default_text,
+        target,
+        "Mensagem de teste",
+        1,
+        "18,000",
+        now,
+        "Hero Points",
+        image_url=None,
+        hero_points="18,000",
+    )
 
     telegram_sent = send_telegram(telegram_text)
     discord_sent = send_discord(discord_text)
