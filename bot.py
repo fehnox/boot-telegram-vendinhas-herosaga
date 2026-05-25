@@ -103,6 +103,7 @@ TELEGRAM_MESSAGE = os.getenv("TELEGRAM_MESSAGE", "").strip()
 SHOP_URL = os.getenv("SHOP_URL", DEFAULT_SHOP_URL)
 STORE_TARGETS = []
 BASE_URL = "https://herosaga.com.br/"
+TELEGRAM_DISABLE_NOTIFICATION = os.getenv("TELEGRAM_DISABLE_NOTIFICATION", "false").strip().casefold() in {"1", "true", "yes", "on"}
 
 CURRENCY_KEYWORDS = {
     "Hero Points": [
@@ -410,15 +411,15 @@ def send_telegram(text: str, chat_ids: list[str] | None = None, image_url: str |
                     "chat_id": chat_id,
                     "photo": image_url,
                     "caption": text[:1024],
-                    "disable_notification": True,
+                    "disable_notification": TELEGRAM_DISABLE_NOTIFICATION,
                 }
                 r = telegram_api_request("sendPhoto", payload)
                 if not r.ok:
                     logger.warning("Telegram rejeitou a foto; reenviando como texto")
-                    payload = {"chat_id": chat_id, "text": text, "disable_notification": True}
+                    payload = {"chat_id": chat_id, "text": text, "disable_notification": TELEGRAM_DISABLE_NOTIFICATION}
                     r = telegram_api_request("sendMessage", payload)
             else:
-                payload = {"chat_id": chat_id, "text": text, "disable_notification": True}
+                payload = {"chat_id": chat_id, "text": text, "disable_notification": TELEGRAM_DISABLE_NOTIFICATION}
                 r = telegram_api_request("sendMessage", payload)
             if r.ok:
                 logger.info("Alerta enviado")
