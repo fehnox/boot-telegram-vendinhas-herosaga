@@ -30,7 +30,6 @@ from urllib.parse import urljoin
 
 import requests
 from bs4 import BeautifulSoup
-from dotenv import load_dotenv
 
 
 ROOT_DIR = Path(__file__).resolve().parent
@@ -39,7 +38,56 @@ SHOP_URLS_FILE = CONFIG_DIR / "shop_urls.txt"
 DATA_DIR = ROOT_DIR / "data"
 HISTORY_FILE = DATA_DIR / "history.json"
 
-load_dotenv(ROOT_DIR / ".env")
+
+def load_env_file(path: Path) -> dict[str, str]:
+    if not path.exists():
+        return {}
+
+    values: dict[str, str] = {}
+    current_key: str | None = None
+    current_value_parts: list[str] = []
+
+    def flush_current() -> None:
+        nonlocal current_key, current_value_parts
+        if current_key is not None:
+            values[current_key] = "\n".join(current_value_parts).rstrip("\n")
+        current_key = None
+        current_value_parts = []
+
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.rstrip("\r")
+        stripped = line.strip()
+
+        if stripped.startswith("#"):
+            flush_current()
+            continue
+
+        if not stripped:
+            if current_key is not None:
+                current_value_parts.append("")
+            continue
+
+        if "=" in line and re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", line):
+            flush_current()
+            key, value = line.split("=", 1)
+            current_key = key.strip()
+            current_value_parts = [value]
+            continue
+
+        if current_key is not None:
+            current_value_parts.append(line)
+
+    flush_current()
+    return values
+
+
+def load_env_overrides(path: Path) -> None:
+    env_values = load_env_file(path)
+    for key, value in env_values.items():
+        os.environ.setdefault(key, value)
+
+
+load_env_overrides(ROOT_DIR / ".env")
 
 DEFAULT_SHOP_URL = "https://herosaga.com.br/?module=vending&action=viewshop&id=30313"
 # Prefere as variáveis usadas no .env local, sem perder compatibilidade com o GitHub Actions.

@@ -73,19 +73,36 @@ function saveShops(shops) {
 function parseEnv(content) {
   const env = {};
   const lines = content.split(/\r?\n/);
+  let currentKey = null;
+  let currentParts = [];
+
+  function flushCurrent() {
+    if (currentKey) {
+      env[currentKey] = currentParts.join('\n').replace(/\n+$/, '');
+    }
+    currentKey = null;
+    currentParts = [];
+  }
+
   for (const line of lines) {
     const clean = line.trim();
     if (!clean || clean.startsWith('#')) {
+      flushCurrent();
       continue;
     }
     const sep = clean.indexOf('=');
     if (sep === -1) {
+      if (currentKey) {
+        currentParts.push(line);
+      }
       continue;
     }
-    const key = clean.slice(0, sep).trim();
-    const value = clean.slice(sep + 1).trim();
-    env[key] = value;
+    flushCurrent();
+    currentKey = clean.slice(0, sep).trim();
+    currentParts = [line.slice(sep + 1)];
   }
+
+  flushCurrent();
   return env;
 }
 
