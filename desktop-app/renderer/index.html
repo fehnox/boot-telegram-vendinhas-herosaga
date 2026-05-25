@@ -8,87 +8,66 @@
   </head>
   <body>
     <div class="app-shell">
-      <aside class="sidebar">
-        <div class="brand">
+      <header class="topbar">
+        <div class="brand-block">
           <div class="brand-mark">HS</div>
           <div>
-            <h1>HeroSaga</h1>
-            <p>Monitor Desktop</p>
+            <h1>HeroSaga Monitor</h1>
+            <p>Painel simples para lojas, configs e logs</p>
           </div>
         </div>
-
-        <div class="sidebar-card">
-          <span class="eyebrow">Atalho rápido</span>
-          <button id="save-btn" class="btn btn-primary btn-block">Salvar configuração</button>
-          <button id="sync-btn" class="btn btn-success btn-block">Salvar configuração VPS</button>
-          <button id="run-bot-btn" class="btn btn-ghost btn-block">Executar teste do bot</button>
+        <div class="topbar-meta">
+          <div class="pill">Lojinhas: <strong id="shops-count">0</strong></div>
+          <div class="pill">Telegram: <strong id="telegram-state">-</strong></div>
+          <div class="pill">Discord: <strong id="discord-state">-</strong></div>
+          <div class="pill">VPS: <strong id="vps-state">-</strong></div>
         </div>
+      </header>
 
-        <div class="sidebar-card">
-          <span class="eyebrow">Seções</span>
-          <nav class="section-nav">
-            <a href="#lojinhas">Lojinhas</a>
-            <a href="#mensagens">Mensagens</a>
-            <a href="#salvamentos">Salvamentos</a>
-            <a href="#logs">Logs</a>
-          </nav>
-        </div>
+      <div class="page-nav-wrap">
+        <nav class="page-nav" id="page-nav">
+          <button type="button" class="page-tab active" data-page="lojinhas">Lojinhas</button>
+          <button type="button" class="page-tab" data-page="configs">Configs</button>
+          <button type="button" class="page-tab" data-page="mensagens">Mensagens</button>
+          <button type="button" class="page-tab" data-page="salvamentos">Salvamentos</button>
+          <button type="button" class="page-tab" data-page="logs">Logs</button>
+        </nav>
+      </div>
 
-        <div class="sidebar-card meta-box">
-          <span class="eyebrow">Estado atual</span>
-          <div id="status-pill" class="status-pill">Carregando...</div>
-          <div id="summary-text" class="summary-text">Aguardando dados.</div>
-        </div>
-      </aside>
-
-      <main class="content">
-        <section class="hero card">
-          <div>
-            <span class="eyebrow">Painel personalizado</span>
-            <h2>Controle o bot, as lojas e a sincronização em um lugar só.</h2>
-            <p>
-              Salve localmente, envie para o GitHub e atualize a VPS sem mexer em arquivo manualmente.
-            </p>
+      <main class="pages">
+        <section class="page-panel active" data-page-panel="lojinhas">
+          <div class="page-card hero-card">
+            <div>
+              <span class="eyebrow">Lojinhas</span>
+              <h2>Cadastre e edite as lojas com espaço de verdade.</h2>
+              <p>Use nome + URL ou apenas a URL. A lista grava em <code>config/shop_urls.txt</code>.</p>
+            </div>
+            <div class="hero-actions">
+              <button id="add-shop-btn" class="btn btn-soft">+ Adicionar lojinha</button>
+              <button id="save-btn" class="btn btn-primary">Salvar</button>
+            </div>
           </div>
-          <div class="hero-grid">
-            <div class="mini-stat">
-              <span>Lojinhas</span>
-              <strong id="shops-count">0</strong>
+
+          <div class="page-card">
+            <div class="section-head">
+              <div>
+                <span class="eyebrow">Lista</span>
+                <h3>Lojas monitoradas</h3>
+              </div>
+              <button id="run-bot-btn" class="btn btn-ghost">Teste manual</button>
             </div>
-            <div class="mini-stat">
-              <span>Telegram</span>
-              <strong id="telegram-state">-</strong>
-            </div>
-            <div class="mini-stat">
-              <span>Discord</span>
-              <strong id="discord-state">-</strong>
-            </div>
-            <div class="mini-stat">
-              <span>Sync VPS</span>
-              <strong id="vps-state">-</strong>
-            </div>
+            <div id="shops-list" class="shops-list"></div>
           </div>
         </section>
 
-        <div class="panels-grid">
-          <section id="lojinhas" class="card panel panel-accent-shop">
-            <div class="panel-head">
+        <section class="page-panel" data-page-panel="configs">
+          <div class="page-card">
+            <div class="section-head">
               <div>
-                <span class="eyebrow">Lojinhas</span>
-                <h3>Cadastro das lojas monitoradas</h3>
+                <span class="eyebrow">Configs</span>
+                <h2>Telegram e ajustes do monitor</h2>
               </div>
-              <button id="add-shop-btn" class="btn btn-soft">+ Adicionar lojinha</button>
-            </div>
-            <p class="muted">Cada linha salva no <code>config/shop_urls.txt</code>. Você pode usar nome + URL ou só a URL.</p>
-            <div id="shops-list" class="shops-list"></div>
-          </section>
-
-          <section id="mensagens" class="card panel panel-accent-msg">
-            <div class="panel-head">
-              <div>
-                <span class="eyebrow">Mensagens</span>
-                <h3>Telegram e Discord</h3>
-              </div>
+              <button id="save-only-btn" class="btn btn-primary">Salvar configurações</button>
             </div>
             <div class="grid-2">
               <label>Token do bot (Telegram)
@@ -100,20 +79,60 @@
               <label>Chat IDs adicionais (vírgula)
                 <input id="CHAT_IDS" type="text" placeholder="123,456" />
               </label>
-              <label>Webhook Discord
-                <input id="DISCORD_WEBHOOK" type="text" placeholder="https://discord.com/api/webhooks/..." />
+              <label>Cooldown do alerta (segundos)
+                <input id="NOTIFY_COOLDOWN" type="number" min="5" step="1" />
               </label>
-              <label class="span-2">Mensagem personalizada do Discord
-                <textarea id="DISCORD_MESSAGE" rows="4" placeholder="Ex: [ALERTA HERO] {default}"></textarea>
+              <label>Timeout da requisição (segundos)
+                <input id="REQUEST_TIMEOUT" type="number" min="5" step="1" />
               </label>
             </div>
-          </section>
+          </div>
+        </section>
 
-          <section id="salvamentos" class="card panel panel-accent-save">
-            <div class="panel-head">
+        <section class="page-panel" data-page-panel="mensagens">
+          <div class="page-card">
+            <div class="section-head">
+              <div>
+                <span class="eyebrow">Mensagens</span>
+                <h2>Telegram e Discord separados</h2>
+              </div>
+            </div>
+            <p class="muted">As credenciais ficam em <b>Configs</b>. Aqui você só escreve o texto de alerta de cada canal.</p>
+            <div class="message-sections">
+              <div class="message-card message-telegram">
+                <span class="eyebrow">Telegram</span>
+                <h3>Texto personalizado do alerta Telegram</h3>
+                <label>Mensagem do Telegram
+                  <textarea id="TELEGRAM_MESSAGE" rows="6" placeholder="Ex: 🛒 VENDA DETECTADA\nLoja: {store}\nItem: {item}\nQuantidade: {quantity}\nPreço: {price}\nHora: {time}"></textarea>
+                </label>
+              </div>
+
+              <div class="message-card message-discord">
+                <span class="eyebrow">Discord</span>
+                <h3>Webhook e texto do Discord</h3>
+                <div class="grid-2">
+                  <label class="span-2">Webhook Discord
+                    <input id="DISCORD_WEBHOOK" type="text" placeholder="https://discord.com/api/webhooks/..." />
+                  </label>
+                  <label class="span-2">Mensagem personalizada do Discord
+                    <textarea id="DISCORD_MESSAGE" rows="6" placeholder="Ex: [ALERTA HERO] {default}"></textarea>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="page-panel" data-page-panel="salvamentos">
+          <div class="page-card">
+            <div class="section-head">
               <div>
                 <span class="eyebrow">Salvamentos</span>
-                <h3>Sincronização local e VPS</h3>
+                <h2>Sincronização local e VPS</h2>
+              </div>
+              <div class="page-actions">
+                <button id="sync-only-btn" class="btn btn-success">Salvar configuração VPS</button>
+                <button id="ensure-worker-btn" class="btn btn-soft">Restaurar worker na VPS</button>
               </div>
             </div>
             <div class="grid-2">
@@ -127,32 +146,35 @@
                 <input id="VPS_PROJECT_DIR" type="text" placeholder="/home/ubuntu/boot-telegram-vendinhas-herosaga" />
               </label>
             </div>
-            <div class="save-actions">
-              <button id="save-only-btn" class="btn btn-primary">Salvar configuração</button>
-              <button id="sync-only-btn" class="btn btn-success">Salvar configuração VPS</button>
-              <button id="ensure-worker-btn" class="btn btn-soft">Restaurar worker na VPS</button>
-              <button id="run-bot-inline-btn" class="btn btn-ghost">Rodar teste do bot</button>
-            </div>
-          </section>
+          </div>
+        </section>
 
-          <section id="logs" class="card panel panel-accent-logs panel-wide">
-            <div class="panel-head">
+        <section class="page-panel" data-page-panel="logs">
+          <div class="page-card">
+            <div class="section-head">
               <div>
                 <span class="eyebrow">Logs</span>
-                <h3>Saída de ações e diagnósticos</h3>
+                <h2>Saída de ações e diagnósticos</h2>
               </div>
             </div>
-            <div id="status" class="status-line">Carregando...</div>
+            <div id="status-pill" class="status-pill" data-tone="info"><span class="status-dot"></span><span class="status-text">Conectando...</span></div>
+            <div id="summary-text" class="summary-text">Aguardando dados.</div>
             <pre id="logs-output" class="logs"></pre>
-          </section>
-        </div>
+          </div>
+        </section>
       </main>
     </div>
 
     <template id="shop-row-template">
       <div class="shop-row">
-        <input class="shop-name" type="text" placeholder="Nome da lojinha" />
-        <input class="shop-url" type="text" placeholder="https://herosaga.com.br/?module=vending&action=viewshop&id=12345" />
+        <div class="shop-field">
+          <span>Nome</span>
+          <input class="shop-name" type="text" placeholder="Ex: Primeiro" />
+        </div>
+        <div class="shop-field shop-field-url">
+          <span>URL</span>
+          <input class="shop-url" type="text" placeholder="https://herosaga.com.br/?module=vending&action=viewshop&id=12345" />
+        </div>
         <button class="btn btn-danger remove-shop-btn">Remover</button>
       </div>
     </template>

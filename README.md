@@ -136,6 +136,8 @@ Se você alterar [config/shop_urls.txt](config/shop_urls.txt) e fizer `git push`
 
 Se `CHAT_IDS` estiver preenchido com uma lista separada por vírgulas, o bot envia alertas para vários usuários sem mudar o código.
 
+O teste de conectividade foi removido da inicialização para evitar spam; o botão de teste no app continua disponível para validação manual.
+
 ## Rodar na VPS
 
 Na VPS Ubuntu, o worker pode ser mantido em `tmux` com o script [scripts/run_vps_worker.sh](scripts/run_vps_worker.sh). Ele faz backup de [data/history.json](data/history.json) antes do `git pull --ff-only`, evitando travar com mudanças locais, e depois roda o bot de novo.

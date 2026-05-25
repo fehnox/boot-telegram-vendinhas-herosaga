@@ -1,18 +1,22 @@
 const shopsList = document.getElementById('shops-list');
-const statusLine = document.getElementById('status');
-const logsOutput = document.getElementById('logs-output');
 const statusPill = document.getElementById('status-pill');
 const summaryText = document.getElementById('summary-text');
+const logsOutput = document.getElementById('logs-output');
 const shopsCountEl = document.getElementById('shops-count');
 const telegramStateEl = document.getElementById('telegram-state');
 const discordStateEl = document.getElementById('discord-state');
 const vpsStateEl = document.getElementById('vps-state');
 const template = document.getElementById('shop-row-template');
+const pageButtons = [...document.querySelectorAll('.page-tab')];
+const pagePanels = [...document.querySelectorAll('.page-panel')];
 
 const envFields = [
   'TOKEN',
   'CHAT_ID',
   'CHAT_IDS',
+  'TELEGRAM_MESSAGE',
+  'NOTIFY_COOLDOWN',
+  'REQUEST_TIMEOUT',
   'DISCORD_WEBHOOK',
   'DISCORD_MESSAGE',
   'VPS_SSH_TARGET',
@@ -22,12 +26,10 @@ const envFields = [
 
 const buttons = [
   document.getElementById('save-btn'),
-  document.getElementById('sync-btn'),
-  document.getElementById('run-bot-btn'),
   document.getElementById('save-only-btn'),
   document.getElementById('sync-only-btn'),
   document.getElementById('ensure-worker-btn'),
-  document.getElementById('run-bot-inline-btn'),
+  document.getElementById('run-bot-btn'),
   document.getElementById('add-shop-btn')
 ];
 
@@ -35,30 +37,20 @@ function setBusy(isBusy) {
   for (const button of buttons) {
     if (button) {
       button.disabled = isBusy;
-      button.style.opacity = isBusy ? '0.7' : '1';
+      button.style.opacity = isBusy ? '0.72' : '1';
       button.style.cursor = isBusy ? 'wait' : 'pointer';
     }
   }
 }
 
 function setStatus(text, tone = 'info') {
-  statusLine.textContent = text;
-  statusPill.textContent = text;
-  statusPill.style.background = tone === 'error'
-    ? 'rgba(251, 113, 133, 0.14)'
-    : tone === 'success'
-      ? 'rgba(52, 211, 153, 0.14)'
-      : 'rgba(250, 204, 21, 0.12)';
-  statusPill.style.borderColor = tone === 'error'
-    ? 'rgba(251, 113, 133, 0.35)'
-    : tone === 'success'
-      ? 'rgba(52, 211, 153, 0.35)'
-      : 'rgba(250, 204, 21, 0.3)';
-  statusPill.style.color = tone === 'error'
-    ? '#fecdd3'
-    : tone === 'success'
-      ? '#bbf7d0'
-      : '#fef08a';
+  const statusText = statusPill.querySelector('.status-text');
+  if (statusText) {
+    statusText.textContent = text;
+  } else {
+    statusPill.textContent = text;
+  }
+  statusPill.dataset.tone = tone;
 }
 
 function setLogs(text) {
@@ -66,8 +58,22 @@ function setLogs(text) {
 }
 
 function appendLogs(lines) {
-  const next = Array.isArray(lines) ? lines.join('\n') : String(lines || '');
-  setLogs(next);
+  setLogs(Array.isArray(lines) ? lines.join('\n') : String(lines || ''));
+}
+
+function setActivePage(pageName) {
+  for (const button of pageButtons) {
+    button.classList.toggle('active', button.dataset.page === pageName);
+  }
+
+  for (const panel of pagePanels) {
+    panel.classList.toggle('active', panel.dataset.pagePanel === pageName);
+  }
+
+  const target = document.querySelector(`[data-page-panel="${pageName}"]`);
+  if (target) {
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 }
 
 function addShopRow(shop = { name: '', url: '' }) {
@@ -80,6 +86,10 @@ function addShopRow(shop = { name: '', url: '' }) {
   nameInput.value = shop.name || '';
   urlInput.value = shop.url || '';
 
+  const refresh = () => updateSummary();
+  nameInput.addEventListener('input', refresh);
+  urlInput.addEventListener('input', refresh);
+
   removeBtn.addEventListener('click', () => {
     row.remove();
     if (shopsList.children.length === 0) {
@@ -88,16 +98,11 @@ function addShopRow(shop = { name: '', url: '' }) {
     updateSummary();
   });
 
-  nameInput.addEventListener('input', updateSummary);
-  urlInput.addEventListener('input', updateSummary);
-
   shopsList.appendChild(fragment);
-  updateSummary();
 }
 
 function collectShops() {
-  const rows = [...shopsList.querySelectorAll('.shop-row')];
-  return rows
+  return [...shopsList.querySelectorAll('.shop-row')]
     .map((row) => ({
       name: row.querySelector('.shop-name')?.value?.trim() || '',
       url: row.querySelector('.shop-url')?.value?.trim() || ''
@@ -108,14 +113,18 @@ function collectShops() {
 function collectEnv() {
   const env = {};
   for (const field of envFields) {
-    env[field] = document.getElementById(field).value.trim();
+    const element = document.getElementById(field);
+    env[field] = element ? element.value.trim() : '';
   }
   return env;
 }
 
 function fillEnv(env) {
   for (const field of envFields) {
-    document.getElementById(field).value = env[field] || '';
+    const element = document.getElementById(field);
+    if (element) {
+      element.value = env[field] || '';
+    }
   }
 }
 
@@ -127,33 +136,16 @@ function updateSummary() {
   const vpsReady = Boolean(env.VPS_SSH_TARGET && env.VPS_PROJECT_DIR);
 
   shopsCountEl.textContent = String(shops.length);
-  telegramStateEl.textContent = telegramReady ? 'OK' : 'Pendente';
-  discordStateEl.textContent = discordReady ? 'OK' : 'Pendente';
-  vpsStateEl.textContent = vpsReady ? 'OK' : 'Pendente';
+  telegramStateEl.textContent = telegramReady ? 'Ligado' : 'Desligado';
+  discordStateEl.textContent = discordReady ? 'Ligado' : 'Desligado';
+  vpsStateEl.textContent = vpsReady ? 'Ligado' : 'Desligado';
+  telegramStateEl.dataset.state = telegramReady ? 'on' : 'off';
+  discordStateEl.dataset.state = discordReady ? 'on' : 'off';
+  vpsStateEl.dataset.state = vpsReady ? 'on' : 'off';
 
   summaryText.textContent = shops.length
-    ? `${shops.length} lojinha(s) configurada(s). Telegram ${telegramReady ? 'pronto' : 'pendente'}, Discord ${discordReady ? 'pronto' : 'pendente'}, VPS ${vpsReady ? 'pronta' : 'pendente'}.`
-    : 'Adicione suas lojinhas para começar a monitorar e sincronizar.';
-}
-
-async function load() {
-  setStatus('Carregando configuração...', 'info');
-  setBusy(true);
-  try {
-    const payload = await window.heroDesktop.loadConfig();
-    shopsList.innerHTML = '';
-    const shops = payload.shops && payload.shops.length ? payload.shops : [{ name: '', url: '' }];
-    shops.forEach(addShopRow);
-    fillEnv(payload.env || {});
-    updateSummary();
-    setLogs('Configuração carregada com sucesso.');
-    setStatus('Configuração carregada.', 'success');
-  } catch (error) {
-    setStatus(`Erro ao carregar: ${error.message}`, 'error');
-    setLogs(error.stack || error.message);
-  } finally {
-    setBusy(false);
-  }
+    ? `${shops.length} lojinha(s) configurada(s). Telegram ${telegramReady ? 'ligado' : 'desligado'}, Discord ${discordReady ? 'ligado' : 'desligado'}, VPS ${vpsReady ? 'ligada' : 'desligada'}.`
+    : 'Adicione sua primeira lojinha para começar.';
 }
 
 function validateShops(shops) {
@@ -168,6 +160,26 @@ function validateShops(shops) {
   return '';
 }
 
+async function load() {
+  setBusy(true);
+  setStatus('Conectando...', 'info');
+  try {
+    const payload = await window.heroDesktop.loadConfig();
+    shopsList.innerHTML = '';
+    const shops = payload.shops && payload.shops.length ? payload.shops : [{ name: '', url: '' }];
+    shops.forEach(addShopRow);
+    fillEnv(payload.env || {});
+    updateSummary();
+    setLogs('Configuração carregada.');
+    setStatus('Ligado', 'success');
+  } catch (error) {
+    setStatus(`Erro ao carregar: ${error.message}`, 'error');
+    setLogs(error.stack || error.message);
+  } finally {
+    setBusy(false);
+  }
+}
+
 async function saveOnly() {
   const shops = collectShops();
   const err = validateShops(shops);
@@ -178,11 +190,11 @@ async function saveOnly() {
   }
 
   setBusy(true);
-  setStatus('Salvando configuração...', 'info');
+  setStatus('Salvando...', 'info');
   try {
     const result = await window.heroDesktop.saveConfig({ shops, env: collectEnv() });
     appendLogs(result.logs || ['Configuração salva.']);
-    setStatus('Configuração salva localmente.', 'success');
+    setStatus('Salvo e ligado', 'success');
     updateSummary();
   } catch (error) {
     setStatus(`Falha ao salvar: ${error.message}`, 'error');
@@ -202,12 +214,12 @@ async function syncNow() {
   }
 
   setBusy(true);
-  setStatus('Salvando e sincronizando VPS...', 'info');
+  setStatus('Sincronizando...', 'info');
   setLogs('Preparando envio para GitHub e VPS...');
   try {
     const result = await window.heroDesktop.syncToVps({ shops, env: collectEnv() });
     appendLogs(result.logs || ['Sincronização sem saída.']);
-    setStatus(result.ok ? 'Sincronização concluída.' : 'Sincronização falhou.', result.ok ? 'success' : 'error');
+    setStatus(result.ok ? 'Sincronizado e ligado' : 'Desligado', result.ok ? 'success' : 'error');
   } catch (error) {
     setStatus(`Erro na sincronização: ${error.message}`, 'error');
     setLogs(error.stack || error.message);
@@ -219,12 +231,12 @@ async function syncNow() {
 
 async function ensureWorker() {
   setBusy(true);
-  setStatus('Restaurando worker na VPS...', 'info');
+  setStatus('Restaurando worker...', 'info');
   setLogs('Tentando recriar a sessão tmux bot...');
   try {
     const result = await window.heroDesktop.ensureWorker({ env: collectEnv() });
     appendLogs(result.logs || ['Worker restaurado.']);
-    setStatus(result.ok ? 'Worker restaurado na VPS.' : 'Falha ao restaurar worker.', result.ok ? 'success' : 'error');
+    setStatus(result.ok ? 'Worker ligado na VPS' : 'Worker desligado', result.ok ? 'success' : 'error');
   } catch (error) {
     setStatus(`Erro ao restaurar worker: ${error.message}`, 'error');
     setLogs(error.stack || error.message);
@@ -235,12 +247,12 @@ async function ensureWorker() {
 
 async function runBotCheck() {
   setBusy(true);
-  setStatus('Executando teste local do bot...', 'info');
-  setLogs('Rodando bot.py uma vez...');
+  setStatus('Rodando teste manual...', 'info');
+  setLogs('Executando teste manual de conectividade com bot.py...');
   try {
     const result = await window.heroDesktop.runBotCheck();
     setLogs(result.output || '(sem saída)');
-    setStatus(result.ok ? 'Teste local executado com sucesso.' : 'Teste local retornou erro.', result.ok ? 'success' : 'error');
+    setStatus(result.ok ? 'Conectividade OK' : 'Conectividade falhou', result.ok ? 'success' : 'error');
   } catch (error) {
     setStatus(`Erro ao executar teste: ${error.message}`, 'error');
     setLogs(error.stack || error.message);
@@ -252,14 +264,20 @@ async function runBotCheck() {
 document.getElementById('add-shop-btn').addEventListener('click', () => addShopRow());
 document.getElementById('save-btn').addEventListener('click', saveOnly);
 document.getElementById('save-only-btn').addEventListener('click', saveOnly);
-document.getElementById('sync-btn').addEventListener('click', syncNow);
 document.getElementById('sync-only-btn').addEventListener('click', syncNow);
 document.getElementById('ensure-worker-btn').addEventListener('click', ensureWorker);
 document.getElementById('run-bot-btn').addEventListener('click', runBotCheck);
-document.getElementById('run-bot-inline-btn').addEventListener('click', runBotCheck);
 
-for (const field of envFields) {
-  document.getElementById(field).addEventListener('input', updateSummary);
+for (const button of pageButtons) {
+  button.addEventListener('click', () => setActivePage(button.dataset.page));
 }
 
+for (const field of envFields) {
+  const element = document.getElementById(field);
+  if (element) {
+    element.addEventListener('input', updateSummary);
+  }
+}
+
+setActivePage('lojinhas');
 load();

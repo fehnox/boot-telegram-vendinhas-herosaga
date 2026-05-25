@@ -51,9 +51,54 @@ if not CHAT_IDS and CHAT_ID:
     CHAT_IDS = [CHAT_ID]
 DISCORD_WEBHOOK = os.getenv("DISCORD_WEBHOOK")
 DISCORD_MESSAGE = os.getenv("DISCORD_MESSAGE", "").strip()
+TELEGRAM_MESSAGE = os.getenv("TELEGRAM_MESSAGE", "").strip()
 SHOP_URL = os.getenv("SHOP_URL", DEFAULT_SHOP_URL)
 STORE_TARGETS = []
 BASE_URL = "https://herosaga.com.br/"
+
+CURRENCY_KEYWORDS = {
+    "Hero Points": [
+        "hero point",
+        "hero points",
+        "h point",
+        "h points",
+    ],
+    "Moedas RMT": [
+        "moeda rmt",
+        "moedas rmt",
+        "rmt",
+    ],
+}
+
+
+def detect_currency_from_text(text: str) -> str | None:
+    normalized = (text or "").casefold()
+    if not normalized:
+        return None
+
+    for label, keywords in CURRENCY_KEYWORDS.items():
+        for keyword in keywords:
+            if keyword in normalized:
+                return label
+    return None
+
+
+def detect_currency_for_sale(sold_item_name: str, inventory: dict[str, "ShopItem"]) -> str:
+    sold_currency = detect_currency_from_text(sold_item_name)
+    if sold_currency:
+        return sold_currency
+
+    counts = {"Hero Points": 0, "Moedas RMT": 0}
+    for item_name in inventory.keys():
+        currency = detect_currency_from_text(item_name)
+        if currency in counts:
+            counts[currency] += 1
+
+    if counts["Hero Points"] > counts["Moedas RMT"]:
+        return "Hero Points"
+    if counts["Moedas RMT"] > counts["Hero Points"]:
+        return "Moedas RMT"
+    return "Não identificado"
 
 
 @dataclass(frozen=True)
@@ -117,7 +162,7 @@ STORE_TARGETS = load_store_targets()
 
 COOLDOWN = int(os.getenv("NOTIFY_COOLDOWN", "30"))  # segundos entre notificações por item
 REQUEST_TIMEOUT = int(os.getenv("REQUEST_TIMEOUT", "20"))
-STATE_VERSION = 2
+STATE_VERSION = 3
 
 logging.basicConfig(
     level=logging.INFO,
@@ -303,6 +348,12 @@ def send_telegram(text: str, chat_ids: list[str] | None = None, image_url: str |
     if not TOKEN or not recipients:
         logger.warning("Telegram não configurado; pulando envio")
         return False
+
+    normalized_text = text.casefold()
+    if "teste de conectividade" in normalized_text:
+        logger.warning("Bloqueando mensagem de teste de conectividade no Telegram")
+        return False
+
     sent_any = False
     try:
         for chat_id in recipients:
@@ -346,6 +397,37 @@ def build_discord_message(default_text: str) -> str:
     return message or default_text
 
 
+def build_telegram_message(
+    default_text: str,
+    target: StoreTarget,
+    name: str,
+    quantity: int,
+    price: str | None,
+    now: str,
+    currency: str,
+) -> str:
+    if not TELEGRAM_MESSAGE:
+        return default_text
+
+    replacements = {
+        "{default}": default_text,
+        "{text}": default_text,
+        "{store}": target.name,
+        "{shop}": target.name,
+        "{currency}": currency,
+        "{coin}": currency,
+        "{item}": name,
+        "{quantity}": str(quantity),
+        "{price}": price or "-",
+        "{time}": now,
+    }
+
+    message = TELEGRAM_MESSAGE
+    for key, value in replacements.items():
+        message = message.replace(key, value)
+    return message or default_text
+
+
 def send_discord(text: str, image_url: str | None = None) -> bool:
     if not DISCORD_WEBHOOK:
         return False
@@ -366,41 +448,20 @@ def send_discord(text: str, image_url: str | None = None) -> bool:
         return False
 
 
-def telegram_smoke_test() -> bool:
-    if not TOKEN or not CHAT_IDS:
-        logger.error("TOKEN e CHAT_ID são obrigatórios para o teste inicial do Telegram")
-        return False
-
-    try:
-        response = telegram_api_request("getMe")
-        response.raise_for_status()
-        test_message = "Teste de conectividade do monitor"
-        sent_response = telegram_api_request(
-            "sendMessage",
-            {"chat_id": CHAT_IDS[0], "text": test_message, "disable_notification": True},
-        )
-        sent_response.raise_for_status()
-
-        message_id = sent_response.json().get("result", {}).get("message_id")
-        if message_id:
-            try:
-                telegram_api_request("deleteMessage", {"chat_id": CHAT_IDS[0], "message_id": message_id}).raise_for_status()
-            except Exception:
-                logger.warning("Teste Telegram enviado, mas a remoção da mensagem falhou")
-
-        logger.info("Telegram conectado com sucesso")
-        return True
-    except Exception:
-        logger.exception("Erro Telegram no teste inicial de conectividade")
-        return False
-
-
-def format_sale_message(target: StoreTarget, name: str, before: int, after: int, price: str | None = None) -> str:
+def format_sale_message(
+    target: StoreTarget,
+    name: str,
+    before: int,
+    after: int,
+    price: str | None = None,
+    currency: str = "Não identificado",
+) -> str:
     now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     price_text = price or "-"
     return (
         f"🛒 VENDA DETECTADA\n"
         f"Loja: {target.name}\n"
+        f"Moeda: {currency}\n"
         f"Item: {name}\n"
         f"Quantidade: {after}\n"
         f"Preço: {price_text}\n"
@@ -408,10 +469,21 @@ def format_sale_message(target: StoreTarget, name: str, before: int, after: int,
     )
 
 
-def notify_sale(target: StoreTarget, name: str, before: int, after: int, price: str | None = None, image_url: str | None = None) -> bool:
-    text = format_sale_message(target, name, before, after, price)
-    telegram_sent = send_telegram(text, image_url=image_url)
-    discord_sent = send_discord(text, image_url=image_url)
+def notify_sale(
+    target: StoreTarget,
+    name: str,
+    before: int,
+    after: int,
+    price: str | None = None,
+    image_url: str | None = None,
+    currency: str = "Não identificado",
+) -> bool:
+    default_text = format_sale_message(target, name, before, after, price, currency)
+    now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    telegram_text = build_telegram_message(default_text, target, name, after, price, now, currency)
+    discord_text = build_discord_message(default_text)
+    telegram_sent = send_telegram(telegram_text, image_url=image_url)
+    discord_sent = send_discord(discord_text, image_url=image_url)
     if telegram_sent or discord_sent:
         logger.info("Alerta enviado para %s", name)
         return True
@@ -420,7 +492,7 @@ def notify_sale(target: StoreTarget, name: str, before: int, after: int, price: 
 
 def load_store_state(history: dict, target: StoreTarget) -> dict:
     stores = history.setdefault("stores", {})
-    return stores.setdefault(target.url, {"quantities": {}, "last_alerts": {}})
+    return stores.setdefault(target.url, {"quantities": {}, "last_alerts": {}, "items_meta": {}})
 
 
 def should_alert(last_alerts: dict, key: str, now_ts: int) -> bool:
@@ -437,6 +509,7 @@ def inspect_store(target: StoreTarget, history: dict) -> dict:
     store_state = load_store_state(history, target)
     quantities = store_state.setdefault("quantities", {})
     last_alerts = store_state.setdefault("last_alerts", {})
+    items_meta = store_state.setdefault("items_meta", {})
 
     logger.info("Verificando itens: %s", target.url)
     html = fetch_shop(target.url)
@@ -453,6 +526,19 @@ def inspect_store(target: StoreTarget, history: dict) -> dict:
 
     for name, qty in items.items():
         logger.info("Item encontrado: %s | quantidade=%s", name, qty)
+        item = inventory.get(name)
+        currency = detect_currency_for_sale(name, inventory)
+        if currency == "Não identificado":
+            cached_currency = items_meta.get(name, {}).get("currency")
+            if cached_currency:
+                currency = cached_currency
+
+        items_meta[name] = {
+            "price": item.price if item else None,
+            "image_url": item.image_url if item else None,
+            "currency": currency,
+        }
+
         prev = quantities.get(name)
         if prev is None:
             quantities[name] = qty
@@ -461,8 +547,19 @@ def inspect_store(target: StoreTarget, history: dict) -> dict:
         if qty < prev:
             alert_key = f"{target.url}:{name}"
             if should_alert(last_alerts, alert_key, now_ts):
-                item = inventory.get(name)
-                if notify_sale(target, name, prev, qty, price=item.price if item else None, image_url=item.image_url if item else None):
+                sale_meta = items_meta.get(name, {})
+                sale_currency = detect_currency_for_sale(name, inventory)
+                if sale_currency == "Não identificado":
+                    sale_currency = sale_meta.get("currency", "Não identificado")
+                if notify_sale(
+                    target,
+                    name,
+                    prev,
+                    qty,
+                    price=(item.price if item else None) or sale_meta.get("price"),
+                    image_url=(item.image_url if item else None) or sale_meta.get("image_url"),
+                    currency=sale_currency,
+                ):
                     register_alert(last_alerts, alert_key, now_ts)
                     changes.append((name, prev, qty))
             else:
@@ -477,7 +574,19 @@ def inspect_store(target: StoreTarget, history: dict) -> dict:
             alert_key = f"{target.url}:{name}"
             if should_alert(last_alerts, alert_key, now_ts):
                 item = inventory.get(name)
-                if notify_sale(target, name, prev, 0, price=item.price if item else None, image_url=item.image_url if item else None):
+                sale_meta = items_meta.get(name, {})
+                currency = detect_currency_for_sale(name, inventory)
+                if currency == "Não identificado":
+                    currency = sale_meta.get("currency", "Não identificado")
+                if notify_sale(
+                    target,
+                    name,
+                    prev,
+                    0,
+                    price=(item.price if item else None) or sale_meta.get("price"),
+                    image_url=(item.image_url if item else None) or sale_meta.get("image_url"),
+                    currency=currency,
+                ):
                     register_alert(last_alerts, alert_key, now_ts)
                     changes.append((name, prev, 0))
             else:
@@ -515,9 +624,6 @@ def main():
     logger.info("Monitor iniciado | lojas=%d | cooldown=%ss", len(STORE_TARGETS), COOLDOWN)
     if not TOKEN or not CHAT_IDS:
         logger.error("TOKEN e CHAT_ID são obrigatórios para enviar alertas no Telegram")
-        raise SystemExit(1)
-
-    if not telegram_smoke_test():
         raise SystemExit(1)
 
     history = load_history()

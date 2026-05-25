@@ -13,6 +13,95 @@
         "Hero Saga": 2025
       },
       "last_alerts": {}
+    },
+    "https://herosaga.com.br/?module=vending&action=viewshop&id=34107": {
+      "quantities": {
+        "ID Nome Refinamento Slots Slot 1 Slot 2 Slot 3 Slot Random options Preço Quantidade": 4,
+        "1001252 Encantamento Ressonância Ancestral Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 6 rmt": 1,
+        "55605 Encantamento Amplificar Poder Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 2 rmt": 1,
+        "490064 Brilliant Light Sapphire Ring [] Nenhum Nenhum Nenhum Nenhum 4 rmt": 1,
+        "490065 Brilliant Light Sapphire Necklace [] Nenhum Nenhum Nenhum Nenhum 4 rmt": 1,
+        "450173 Nebula Robe of Spell +12 [] Nenhum Nenhum Nenhum 105 rmt": 1
+      },
+      "last_alerts": {}
+    },
+    "https://herosaga.com.br/?module=vending&action=viewshop&id=34093": {
+      "quantities": {
+        "ID Nome Refinamento Slots Slot 1 Slot 2 Slot 3 Slot Random options Preço Quantidade": 0,
+        "1001618 Wigner Premium Exchange Ticket Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 30 c": 0,
+        "1000322 Pó de Éter Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 1 c": 0,
+        "1001217 Divine Cat Whiskers Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 4 c": 0,
+        "20619 Asas de Himavanta ✨ VISUAL Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 25,000 c": 0,
+        "20296 Yoyo de Estimação ✨ VISUAL Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 25,000 c": 0,
+        "46015 Aura Poder Elétrico Obscuro ✨ VISUAL Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 25,000 c": 0,
+        "Wigner Premium Exchange Ticket": 1250,
+        "Pó de Éter": 7096,
+        "Divine Cat Whiskers": 400,
+        "Asas de Himavanta": 1,
+        "Yoyo de Estimação": 1,
+        "Aura Poder Elétrico Obscuro": 1
+      },
+      "last_alerts": {
+        "https://herosaga.com.br/?module=vending&action=viewshop&id=34093:1000322 Pó de Éter Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 1 c": 1779656000,
+        "https://herosaga.com.br/?module=vending&action=viewshop&id=34093:ID Nome Refinamento Slots Slot 1 Slot 2 Slot 3 Slot Random options Preço Quantidade": 1779656000,
+        "https://herosaga.com.br/?module=vending&action=viewshop&id=34093:1001618 Wigner Premium Exchange Ticket Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 30 c": 1779656000,
+        "https://herosaga.com.br/?module=vending&action=viewshop&id=34093:1001217 Divine Cat Whiskers Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 4 c": 1779656000,
+        "https://herosaga.com.br/?module=vending&action=viewshop&id=34093:20619 Asas de Himavanta ✨ VISUAL Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 25,000 c": 1779656000,
+        "https://herosaga.com.br/?module=vending&action=viewshop&id=34093:20296 Yoyo de Estimação ✨ VISUAL Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 25,000 c": 1779656000,
+        "https://herosaga.com.br/?module=vending&action=viewshop&id=34093:46015 Aura Poder Elétrico Obscuro ✨ VISUAL Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 25,000 c": 1779656000
+      }
+    },
+    "https://herosaga.com.br/?module=vending&action=viewshop&id=33230": {
+      "quantities": {
+        "ID Nome Refinamento Slots Slot 1 Slot 2 Slot 3 Slot Random options Preço Quantidade": 0,
+        "300509 Letterster Card Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 10,000 c": 0,
+        "300512 Ice Seahorse Card Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 3,000 c": 0,
+        "300460 Jormungandr Guardian Card Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum ,000 c": 0,
+        "300515 Yoster Fixer Card Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum ,500 c": 0,
+        "300374 Hallucigenia Card Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 600 c": 0,
+        "300368 Intermediate Rgan Card Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 3,500 c": 0,
+        "300364 Calmaring Card Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 7,500 c": 0,
+        "300456 Icewind's Egg Card Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 3,500 c": 0,
+        "300218 Ash Hopper Card Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 13,000 c": 0,
+        "300462 Superior Rgan Shaman Card Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 4,500 c": 0,
+        "Letterster Card": 1,
+        "Ice Seahorse Card": 1,
+        "Jormungandr Guardian Card": 1,
+        "Yoster Fixer Card": 1,
+        "Hallucigenia Card": 1,
+        "Intermediate Rgan Card": 2,
+        "Calmaring Card": 3,
+        "Icewind's Egg Card": 1,
+        "Ash Hopper Card": 1,
+        "Superior Rgan Shaman Card": 1
+      },
+      "last_alerts": {
+        "https://herosaga.com.br/?module=vending&action=viewshop&id=33230:ID Nome Refinamento Slots Slot 1 Slot 2 Slot 3 Slot Random options Preço Quantidade": 1779656026,
+        "https://herosaga.com.br/?module=vending&action=viewshop&id=33230:300509 Letterster Card Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 10,000 c": 1779656026,
+        "https://herosaga.com.br/?module=vending&action=viewshop&id=33230:300512 Ice Seahorse Card Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 3,000 c": 1779656026,
+        "https://herosaga.com.br/?module=vending&action=viewshop&id=33230:300460 Jormungandr Guardian Card Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum ,000 c": 1779656026,
+        "https://herosaga.com.br/?module=vending&action=viewshop&id=33230:300515 Yoster Fixer Card Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum ,500 c": 1779656026,
+        "https://herosaga.com.br/?module=vending&action=viewshop&id=33230:300374 Hallucigenia Card Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 600 c": 1779656026,
+        "https://herosaga.com.br/?module=vending&action=viewshop&id=33230:300368 Intermediate Rgan Card Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 3,500 c": 1779656026,
+        "https://herosaga.com.br/?module=vending&action=viewshop&id=33230:300364 Calmaring Card Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 7,500 c": 1779656026,
+        "https://herosaga.com.br/?module=vending&action=viewshop&id=33230:300456 Icewind's Egg Card Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 3,500 c": 1779656026,
+        "https://herosaga.com.br/?module=vending&action=viewshop&id=33230:300218 Ash Hopper Card Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 13,000 c": 1779656026,
+        "https://herosaga.com.br/?module=vending&action=viewshop&id=33230:300462 Superior Rgan Shaman Card Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 4,500 c": 1779656026
+      }
+    },
+    "https://herosaga.com.br/?module=vending&action=viewshop&id=34088": {
+      "quantities": {
+        "ID Nome Refinamento Slots Slot 1 Slot 2 Slot 3 Slot Random options Preço Quantidade": 0,
+        "590103 Poenitentia Scipione +6 [2] Nenhum Nenhum Nenhum Nenhum Nenhum 18,000 c": 0,
+        "460020 Mad Bunny-LT +11 [] Nenhum Nenhum Nenhum Nenhum Nenhum 80,000 c": 0,
+        "Poenitentia Scipione": 1,
+        "Mad Bunny-LT": 1
+      },
+      "last_alerts": {
+        "https://herosaga.com.br/?module=vending&action=viewshop&id=34088:ID Nome Refinamento Slots Slot 1 Slot 2 Slot 3 Slot Random options Preço Quantidade": 1779656069,
+        "https://herosaga.com.br/?module=vending&action=viewshop&id=34088:590103 Poenitentia Scipione +6 [2] Nenhum Nenhum Nenhum Nenhum Nenhum 18,000 c": 1779656069,
+        "https://herosaga.com.br/?module=vending&action=viewshop&id=34088:460020 Mad Bunny-LT +11 [] Nenhum Nenhum Nenhum Nenhum Nenhum 80,000 c": 1779656069
+      }
     }
   },
   "alerts": {}

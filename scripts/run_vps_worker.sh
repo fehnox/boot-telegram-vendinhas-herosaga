@@ -10,6 +10,12 @@ fi
 
 cd "$ROOT_DIR"
 
+unset TELEGRAM_SMOKE_TEST
+
+if [ -f .env ]; then
+  sed -i '/^TELEGRAM_SMOKE_TEST=/d' .env
+fi
+
 while true; do
   HISTORY_BACKUP="$(mktemp)"
   HISTORY_PRESENT=0
