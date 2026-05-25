@@ -234,7 +234,7 @@ async function ensureRemoteWorker(options) {
   }
   sshArgs.push(
     options.VPS_SSH_TARGET,
-    `cd ${options.VPS_PROJECT_DIR || '/home/ubuntu/boot-telegram-vendinhas-herosaga'} && tmux kill-session -t bot 2>/dev/null || true; LOOP_SECONDS=30 tmux new-session -d -s bot 'bash scripts/run_vps_worker.sh'`
+    `cd ${options.VPS_PROJECT_DIR || '/home/ubuntu/boot-telegram-vendinhas-herosaga'} && tmux kill-session -t bot 2>/dev/null || true; LOOP_SECONDS=10 tmux new-session -d -s bot 'bash scripts/run_vps_worker.sh'`
   );
 
   const restart = await runCommand('ssh', sshArgs, PROJECT_ROOT);

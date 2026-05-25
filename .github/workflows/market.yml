@@ -3,11 +3,11 @@ name: Market Monitor
 on:
   schedule:
     # Ajustes futuros do cron:
-    # - 1 minuto:  "* * * * *"
+    # - 1 minuto:  "* * * * *" (atual)
     # - 2 minutos: "*/2 * * * *"
-    # - 3 minutos: "*/3 * * * *" (atual)
+    # - 3 minutos: "*/3 * * * *"
     # - 10 minutos: "*/10 * * * *"
-    - cron: "*/3 * * * *"
+    - cron: "* * * * *"
   workflow_dispatch:
 
 permissions:

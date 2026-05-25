@@ -84,7 +84,7 @@ npm start
 
 ## GitHub Actions
 
-O workflow em [.github/workflows/market.yml](.github/workflows/market.yml) roda automaticamente a cada 3 minutos com `ubuntu-latest`, instala Python 3.11, instala as dependências e executa [bot.py](bot.py).
+O workflow em [.github/workflows/market.yml](.github/workflows/market.yml) roda automaticamente a cada 1 minuto com `ubuntu-latest`, instala Python 3.11, instala as dependências e executa [bot.py](bot.py).
 
 Como o runner do GitHub Actions é temporário, o workflow também persiste [data/history.json](data/history.json) de volta no repositório quando o estado muda. Assim a próxima execução compara o mercado com o ciclo anterior.
 
@@ -142,7 +142,7 @@ O teste de conectividade foi removido da inicialização para evitar spam; o bot
 
 Na VPS Ubuntu, o worker pode ser mantido em `tmux` com o script [scripts/run_vps_worker.sh](scripts/run_vps_worker.sh). Ele faz backup de [data/history.json](data/history.json) antes do `git pull --ff-only`, evitando travar com mudanças locais, e depois roda o bot de novo.
 
-O intervalo do loop na VPS é controlado por `LOOP_SECONDS` (padrão: `30`).
+O intervalo do loop na VPS é controlado por `LOOP_SECONDS` (padrão: `10`).
 
 Exemplo:
 
