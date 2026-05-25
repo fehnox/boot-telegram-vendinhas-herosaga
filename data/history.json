@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "stores": {
     "https://herosaga.com.br/?module=vending&action=viewshop&id=30313": {
       "quantities": {
@@ -35,7 +35,7 @@
         "20296 Yoyo de Estimação ✨ VISUAL Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 25,000 c": 0,
         "46015 Aura Poder Elétrico Obscuro ✨ VISUAL Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 25,000 c": 0,
         "Wigner Premium Exchange Ticket": 1250,
-        "Pó de Éter": 7096,
+        "Pó de Éter": 7078,
         "Divine Cat Whiskers": 400,
         "Asas de Himavanta": 1,
         "Yoyo de Estimação": 1,
@@ -49,6 +49,38 @@
         "https://herosaga.com.br/?module=vending&action=viewshop&id=34093:20619 Asas de Himavanta ✨ VISUAL Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 25,000 c": 1779656000,
         "https://herosaga.com.br/?module=vending&action=viewshop&id=34093:20296 Yoyo de Estimação ✨ VISUAL Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 25,000 c": 1779656000,
         "https://herosaga.com.br/?module=vending&action=viewshop&id=34093:46015 Aura Poder Elétrico Obscuro ✨ VISUAL Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 25,000 c": 1779656000
+      },
+      "items_meta": {
+        "Wigner Premium Exchange Ticket": {
+          "price": "30 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1001618?nocache=411562367",
+          "currency": "Não identificado"
+        },
+        "Pó de Éter": {
+          "price": "1 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1000322?nocache=905171894",
+          "currency": "Não identificado"
+        },
+        "Divine Cat Whiskers": {
+          "price": "4 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1001217?nocache=1115025730",
+          "currency": "Não identificado"
+        },
+        "Asas de Himavanta": {
+          "price": "25,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=20619?nocache=1224719586",
+          "currency": "Não identificado"
+        },
+        "Yoyo de Estimação": {
+          "price": "25,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=20296?nocache=1350392486",
+          "currency": "Não identificado"
+        },
+        "Aura Poder Elétrico Obscuro": {
+          "price": "25,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=46015?nocache=1445277680",
+          "currency": "Não identificado"
+        }
       }
     },
     "https://herosaga.com.br/?module=vending&action=viewshop&id=33230": {
@@ -87,6 +119,58 @@
         "https://herosaga.com.br/?module=vending&action=viewshop&id=33230:300456 Icewind's Egg Card Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 3,500 c": 1779656026,
         "https://herosaga.com.br/?module=vending&action=viewshop&id=33230:300218 Ash Hopper Card Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 13,000 c": 1779656026,
         "https://herosaga.com.br/?module=vending&action=viewshop&id=33230:300462 Superior Rgan Shaman Card Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 4,500 c": 1779656026
+      },
+      "items_meta": {
+        "Letterster Card": {
+          "price": "10,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300509?nocache=238463810",
+          "currency": "Não identificado"
+        },
+        "Ice Seahorse Card": {
+          "price": "3,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300512?nocache=1403789803",
+          "currency": "Não identificado"
+        },
+        "Jormungandr Guardian Card": {
+          "price": "1,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300460?nocache=305227033",
+          "currency": "Não identificado"
+        },
+        "Yoster Fixer Card": {
+          "price": "1,500 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300515?nocache=1340395873",
+          "currency": "Não identificado"
+        },
+        "Hallucigenia Card": {
+          "price": "600 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300374?nocache=821040428",
+          "currency": "Não identificado"
+        },
+        "Intermediate Rgan Card": {
+          "price": "3,500 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300368?nocache=1609865755",
+          "currency": "Não identificado"
+        },
+        "Calmaring Card": {
+          "price": "7,500 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300364?nocache=1872731586",
+          "currency": "Não identificado"
+        },
+        "Icewind's Egg Card": {
+          "price": "3,500 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300456?nocache=1217760535",
+          "currency": "Não identificado"
+        },
+        "Ash Hopper Card": {
+          "price": "13,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300218?nocache=603981090",
+          "currency": "Não identificado"
+        },
+        "Superior Rgan Shaman Card": {
+          "price": "4,500 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300462?nocache=853428280",
+          "currency": "Não identificado"
+        }
       }
     },
     "https://herosaga.com.br/?module=vending&action=viewshop&id=34088": {
@@ -95,12 +179,50 @@
         "590103 Poenitentia Scipione +6 [2] Nenhum Nenhum Nenhum Nenhum Nenhum 18,000 c": 0,
         "460020 Mad Bunny-LT +11 [] Nenhum Nenhum Nenhum Nenhum Nenhum 80,000 c": 0,
         "Poenitentia Scipione": 1,
-        "Mad Bunny-LT": 1
+        "Mad Bunny-LT": 0
       },
       "last_alerts": {
         "https://herosaga.com.br/?module=vending&action=viewshop&id=34088:ID Nome Refinamento Slots Slot 1 Slot 2 Slot 3 Slot Random options Preço Quantidade": 1779656069,
         "https://herosaga.com.br/?module=vending&action=viewshop&id=34088:590103 Poenitentia Scipione +6 [2] Nenhum Nenhum Nenhum Nenhum Nenhum 18,000 c": 1779656069,
         "https://herosaga.com.br/?module=vending&action=viewshop&id=34088:460020 Mad Bunny-LT +11 [] Nenhum Nenhum Nenhum Nenhum Nenhum 80,000 c": 1779656069
+      },
+      "items_meta": {
+        "Poenitentia Scipione": {
+          "price": "18,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=590103?nocache=860286436",
+          "currency": "Não identificado"
+        }
+      }
+    },
+    "https://herosaga.com.br/?module=vending&action=viewshop&id=34184": {
+      "quantities": {
+        "Encantamento Ressonância Ancestral": 1,
+        "Encantamento Amplificar Poder": 1,
+        "Brilliant Light Sapphire Necklace": 1,
+        "Brilliant Light Sapphire Ring": 1
+      },
+      "last_alerts": {},
+      "items_meta": {
+        "Encantamento Ressonância Ancestral": {
+          "price": "5 rmt",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1001252?nocache=703591734",
+          "currency": "Não identificado"
+        },
+        "Encantamento Amplificar Poder": {
+          "price": "5 rmt",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=55605?nocache=180229237",
+          "currency": "Não identificado"
+        },
+        "Brilliant Light Sapphire Necklace": {
+          "price": "5 rmt",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=490065?nocache=451398190",
+          "currency": "Não identificado"
+        },
+        "Brilliant Light Sapphire Ring": {
+          "price": "5 rmt",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=490064?nocache=70746968",
+          "currency": "Não identificado"
+        }
       }
     }
   },
