@@ -302,14 +302,14 @@ async function ensureWorker() {
 
 async function runBotCheck() {
   setBusy(true);
-  setStatus('Rodando teste manual...', 'info');
-  setLogs('Executando teste manual de conectividade com bot.py...');
+  setStatus('Atualizando status...', 'info');
+  setLogs('Executando um ciclo local do monitor para atualizar os status das lojas...');
   try {
-    const result = await window.heroDesktop.runBotCheck();
+    const result = await window.heroDesktop.runMonitorCycle({ env: collectEnv() });
     setLogs(result.output || '(sem saída)');
-    setStatus(result.ok ? 'Conectividade OK' : 'Conectividade falhou', result.ok ? 'success' : 'error');
+    setStatus(result.ok ? 'Status atualizado' : 'Falha ao atualizar', result.ok ? 'success' : 'error');
   } catch (error) {
-    setStatus(`Erro ao executar teste: ${error.message}`, 'error');
+    setStatus(`Erro ao atualizar status: ${error.message}`, 'error');
     setLogs(error.stack || error.message);
   } finally {
     setBusy(false);

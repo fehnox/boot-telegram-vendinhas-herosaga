@@ -224,6 +224,471 @@
           "currency": "Não identificado"
         }
       }
+    },
+    "https://herosaga.com.br/?module=vending&action=viewshop&id=35053": {
+      "quantities": {},
+      "last_alerts": {},
+      "items_meta": {}
+    },
+    "https://herosaga.com.br/?module=vending&action=viewshop&id=36184": {
+      "quantities": {
+        "Aquamarina": 362,
+        "Pó de Éter": 30000,
+        "Skipskipper Card": 3,
+        "Ice Seahorse Card": 2,
+        "Yordos Investigator Card": 4,
+        "Yordos Judge Card": 4,
+        "Yorker Worker Card": 1,
+        "Pedra de Aprimoramento de Acessório (Inferior)": 1001,
+        "Spirit of Yorscalp": 19,
+        "Symbol of Curse": 11,
+        "Energia da Terra": 13,
+        "Energia do Vento": 13
+      },
+      "last_alerts": {},
+      "items_meta": {
+        "Aquamarina": {
+          "price": "5 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=720?nocache=702266992",
+          "currency": "Não identificado"
+        },
+        "Pó de Éter": {
+          "price": "1 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1000322?nocache=931750288",
+          "currency": "Não identificado"
+        },
+        "Skipskipper Card": {
+          "price": "2,500 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300508?nocache=1845991178",
+          "currency": "Não identificado"
+        },
+        "Ice Seahorse Card": {
+          "price": "2,500 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300512?nocache=594427346",
+          "currency": "Não identificado"
+        },
+        "Yordos Investigator Card": {
+          "price": "650 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300521?nocache=161550899",
+          "currency": "Não identificado"
+        },
+        "Yordos Judge Card": {
+          "price": "650 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300522?nocache=1007204931",
+          "currency": "Não identificado"
+        },
+        "Yorker Worker Card": {
+          "price": "1,800 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300526?nocache=1312781474",
+          "currency": "Não identificado"
+        },
+        "Pedra de Aprimoramento de Acessório (Inferior)": {
+          "price": "2 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1000438?nocache=714271150",
+          "currency": "Não identificado"
+        },
+        "Spirit of Yorscalp": {
+          "price": "700 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1001836?nocache=991474838",
+          "currency": "Não identificado"
+        },
+        "Symbol of Curse": {
+          "price": "1,800 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1001835?nocache=612010230",
+          "currency": "Não identificado"
+        },
+        "Energia da Terra": {
+          "price": "700 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1001464?nocache=1605989448",
+          "currency": "Não identificado"
+        },
+        "Energia do Vento": {
+          "price": "300 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1001463?nocache=1333729615",
+          "currency": "Não identificado"
+        }
+      }
+    },
+    "https://herosaga.com.br/?module=vending&action=viewshop&id=36112": {
+      "quantities": {
+        "Pó de Éter": 30000,
+        "Gunter Card Fragment": 3,
+        "Lee Card Fragment": 6,
+        "Tan Card Fragment": 5,
+        "Iana Card Fragment": 1,
+        "Richard Richard Card Fragment": 6,
+        "Laura Valdaris Card Fragment": 3,
+        "Yohan Card Fragment": 6,
+        "Tris Card Fragment": 2,
+        "Reinhardt Lugenburg Card Fragment": 2,
+        "Howell Megas Walther Fragment": 1
+      },
+      "last_alerts": {},
+      "items_meta": {
+        "Pó de Éter": {
+          "price": "1 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1000322?nocache=327489682",
+          "currency": "Não identificado"
+        },
+        "Gunter Card Fragment": {
+          "price": "998 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1001850?nocache=222569202",
+          "currency": "Não identificado"
+        },
+        "Lee Card Fragment": {
+          "price": "3,100 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1001853?nocache=1049966338",
+          "currency": "Não identificado"
+        },
+        "Tan Card Fragment": {
+          "price": "2,690 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1001838?nocache=1781852843",
+          "currency": "Não identificado"
+        },
+        "Iana Card Fragment": {
+          "price": "2,980 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1001852?nocache=994182854",
+          "currency": "Não identificado"
+        },
+        "Richard Richard Card Fragment": {
+          "price": "999 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1001843?nocache=800718783",
+          "currency": "Não identificado"
+        },
+        "Laura Valdaris Card Fragment": {
+          "price": "999 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1001844?nocache=31669051",
+          "currency": "Não identificado"
+        },
+        "Yohan Card Fragment": {
+          "price": "999 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1001849?nocache=1367967135",
+          "currency": "Não identificado"
+        },
+        "Tris Card Fragment": {
+          "price": "1,900 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1001837?nocache=951841870",
+          "currency": "Não identificado"
+        },
+        "Reinhardt Lugenburg Card Fragment": {
+          "price": "999 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1001840?nocache=1042850049",
+          "currency": "Não identificado"
+        },
+        "Howell Megas Walther Fragment": {
+          "price": "2,700 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1002433?nocache=1624868275",
+          "currency": "Não identificado"
+        }
+      }
+    },
+    "https://herosaga.com.br/?module=vending&action=viewshop&id=36069": {
+      "quantities": {
+        "Energia da Terra": 15,
+        "Energia do Vento": 11,
+        "Pó de Éter": 30000,
+        "Aquamarina": 400,
+        "Fragmento de Comodo": 437,
+        "Lead": 17,
+        "Ovo de M.WA-0001": 1,
+        "Carnium Etéreo": 20,
+        "Alma de Beteleuse": 6,
+        "Shape of Fallen Serpent": 80
+      },
+      "last_alerts": {},
+      "items_meta": {
+        "Energia da Terra": {
+          "price": "700 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1001464?nocache=1427537458",
+          "currency": "Não identificado"
+        },
+        "Energia do Vento": {
+          "price": "300 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1001463?nocache=904456025",
+          "currency": "Não identificado"
+        },
+        "Pó de Éter": {
+          "price": "1 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1000322?nocache=663823762",
+          "currency": "Não identificado"
+        },
+        "Aquamarina": {
+          "price": "5 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=720?nocache=927036180",
+          "currency": "Não identificado"
+        },
+        "Fragmento de Comodo": {
+          "price": "11 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=55790?nocache=775136703",
+          "currency": "Não identificado"
+        },
+        "Lead": {
+          "price": "20 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1000680?nocache=542644328",
+          "currency": "Não identificado"
+        },
+        "Ovo de M.WA-0001": {
+          "price": "165,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=9308?nocache=1803841607",
+          "currency": "Não identificado"
+        },
+        "Carnium Etéreo": {
+          "price": "70 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1000370?nocache=1309270493",
+          "currency": "Não identificado"
+        },
+        "Alma de Beteleuse": {
+          "price": "500 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1000397?nocache=1077828544",
+          "currency": "Não identificado"
+        },
+        "Shape of Fallen Serpent": {
+          "price": "2,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1001834?nocache=1978924266",
+          "currency": "Não identificado"
+        }
+      }
+    },
+    "https://herosaga.com.br/?module=vending&action=viewshop&id=36054": {
+      "quantities": {
+        "Muqaddas Jaydukhar": 1,
+        "Chicle de Bola": 126,
+        "Ovo de Reencarnação de Morroc": 1,
+        "Pó de Éter": 25357,
+        "Aquamarina": 257,
+        "Energia da Água": 12,
+        "Alma de Evolução Avançada": 6,
+        "Alma de Evolução": 3,
+        "Energia Abençoada": 10,
+        "Ovo de M.WA-0001": 1,
+        "Crown of Penance": 1,
+        "Poção do Furor Físico": 527
+      },
+      "last_alerts": {},
+      "items_meta": {
+        "Muqaddas Jaydukhar": {
+          "price": "110,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=640046?nocache=1089848624",
+          "currency": "Não identificado"
+        },
+        "Chicle de Bola": {
+          "price": "2,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=12412?nocache=1030646278",
+          "currency": "Não identificado"
+        },
+        "Ovo de Reencarnação de Morroc": {
+          "price": "300,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=9211?nocache=719506924",
+          "currency": "Não identificado"
+        },
+        "Pó de Éter": {
+          "price": "1 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1000322?nocache=1779127136",
+          "currency": "Não identificado"
+        },
+        "Aquamarina": {
+          "price": "5 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=720?nocache=2061581314",
+          "currency": "Não identificado"
+        },
+        "Energia da Água": {
+          "price": "3,500 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1001462?nocache=1605978404",
+          "currency": "Não identificado"
+        },
+        "Alma de Evolução Avançada": {
+          "price": "11,500 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=44435?nocache=1738269404",
+          "currency": "Não identificado"
+        },
+        "Alma de Evolução": {
+          "price": "9,999 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=44433?nocache=2047234792",
+          "currency": "Não identificado"
+        },
+        "Energia Abençoada": {
+          "price": "2,400 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=44436?nocache=1126973371",
+          "currency": "Não identificado"
+        },
+        "Ovo de M.WA-0001": {
+          "price": "165,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=9308?nocache=1330177652",
+          "currency": "Não identificado"
+        },
+        "Crown of Penance": {
+          "price": "50,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=400440?nocache=2031665854",
+          "currency": "Não identificado"
+        },
+        "Poção do Furor Físico": {
+          "price": "25 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=12418?nocache=981075700",
+          "currency": "Não identificado"
+        }
+      }
+    },
+    "https://herosaga.com.br/?module=vending&action=viewshop&id=35829": {
+      "quantities": {
+        "Wigner Premium Exchange Ticket": 1250,
+        "Pó de Éter": 6537,
+        "Divine Cat Whiskers": 400,
+        "Asas de Himavanta": 1,
+        "Yoyo de Estimação": 1,
+        "Aura Poder Elétrico Obscuro": 1
+      },
+      "last_alerts": {
+        "https://herosaga.com.br/?module=vending&action=viewshop&id=35829:Pó de Éter": 1779729816
+      },
+      "items_meta": {
+        "Wigner Premium Exchange Ticket": {
+          "price": "30 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1001618?nocache=588665384",
+          "currency": "Não identificado"
+        },
+        "Pó de Éter": {
+          "price": "1 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1000322?nocache=1543975306",
+          "currency": "Não identificado"
+        },
+        "Divine Cat Whiskers": {
+          "price": "4 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1001217?nocache=248297029",
+          "currency": "Não identificado"
+        },
+        "Asas de Himavanta": {
+          "price": "25,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=20619?nocache=88264172",
+          "currency": "Não identificado"
+        },
+        "Yoyo de Estimação": {
+          "price": "25,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=20296?nocache=1076000910",
+          "currency": "Não identificado"
+        },
+        "Aura Poder Elétrico Obscuro": {
+          "price": "25,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=46015?nocache=1044166870",
+          "currency": "Não identificado"
+        }
+      }
+    },
+    "https://herosaga.com.br/?module=vending&action=viewshop&id=35853": {
+      "quantities": {
+        "Poenitentia Scipione": 1
+      },
+      "last_alerts": {},
+      "items_meta": {
+        "Poenitentia Scipione": {
+          "price": "18,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=590103?nocache=1966228376",
+          "currency": "Não identificado"
+        }
+      }
+    },
+    "https://herosaga.com.br/?module=vending&action=viewshop&id=35549": {
+      "quantities": {
+        "Letterster Card": 1,
+        "Ice Seahorse Card": 1,
+        "Jormungandr Guardian Card": 1,
+        "Yoster Fixer Card": 1,
+        "Hallucigenia Card": 1,
+        "Intermediate Rgan Card": 2,
+        "Calmaring Card": 3,
+        "Icewind's Egg Card": 1,
+        "Ash Hopper Card": 1,
+        "Superior Rgan Shaman Card": 1
+      },
+      "last_alerts": {},
+      "items_meta": {
+        "Letterster Card": {
+          "price": "10,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300509?nocache=997496310",
+          "currency": "Não identificado"
+        },
+        "Ice Seahorse Card": {
+          "price": "3,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300512?nocache=676329533",
+          "currency": "Não identificado"
+        },
+        "Jormungandr Guardian Card": {
+          "price": "1,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300460?nocache=1593729399",
+          "currency": "Não identificado"
+        },
+        "Yoster Fixer Card": {
+          "price": "1,500 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300515?nocache=2084048678",
+          "currency": "Não identificado"
+        },
+        "Hallucigenia Card": {
+          "price": "600 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300374?nocache=956408106",
+          "currency": "Não identificado"
+        },
+        "Intermediate Rgan Card": {
+          "price": "3,500 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300368?nocache=1850125504",
+          "currency": "Não identificado"
+        },
+        "Calmaring Card": {
+          "price": "7,500 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300364?nocache=1355202720",
+          "currency": "Não identificado"
+        },
+        "Icewind's Egg Card": {
+          "price": "3,500 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300456?nocache=1876196002",
+          "currency": "Não identificado"
+        },
+        "Ash Hopper Card": {
+          "price": "13,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300218?nocache=360752556",
+          "currency": "Não identificado"
+        },
+        "Superior Rgan Shaman Card": {
+          "price": "4,500 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300462?nocache=1092839043",
+          "currency": "Não identificado"
+        }
+      }
+    },
+    "https://herosaga.com.br/?module=vending&action=viewshop&id=36110": {
+      "quantities": {
+        "Encantamento Amplificar Poder": 1,
+        "Encantamento Ressonância Ancestral": 1,
+        "Caixa de Batalha [WoE]": 1,
+        "Brilliant Light Sapphire Ring": 1,
+        "Brilliant Light Sapphire Necklace": 1
+      },
+      "last_alerts": {},
+      "items_meta": {
+        "Encantamento Amplificar Poder": {
+          "price": "3,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=55605?nocache=1410840036",
+          "currency": "Não identificado"
+        },
+        "Encantamento Ressonância Ancestral": {
+          "price": "7,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1001252?nocache=2122292083",
+          "currency": "Não identificado"
+        },
+        "Caixa de Batalha [WoE]": {
+          "price": "400,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=55600?nocache=872334148",
+          "currency": "Não identificado"
+        },
+        "Brilliant Light Sapphire Ring": {
+          "price": "5,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=490064?nocache=1248994066",
+          "currency": "Não identificado"
+        },
+        "Brilliant Light Sapphire Necklace": {
+          "price": "5,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=490065?nocache=1557135769",
+          "currency": "Não identificado"
+        }
+      }
     }
   },
   "alerts": {}

@@ -166,6 +166,39 @@ function runCommand(bin, args, cwd, extra = {}) {
   });
 }
 
+function buildPythonEnv(input = {}, extras = {}) {
+  const env = { ...extras };
+  const fields = [
+    'TOKEN',
+    'CHAT_ID',
+    'CHAT_IDS',
+    'TELEGRAM_MESSAGE',
+    'DISCORD_WEBHOOK',
+    'DISCORD_MESSAGE',
+    'NOTIFY_COOLDOWN',
+    'REQUEST_TIMEOUT',
+    'SHOP_URL',
+    'SHOP_URLS'
+  ];
+
+  for (const field of fields) {
+    const value = input[field];
+    if (value !== undefined && value !== null && String(value).trim() !== '') {
+      env[field] = String(value);
+    }
+  }
+
+  if (input.BOT_TOKEN && !env.TOKEN) {
+    env.TOKEN = String(input.BOT_TOKEN).trim();
+  }
+
+  if (input.TELEGRAM_CHAT_ID && !env.CHAT_ID) {
+    env.CHAT_ID = String(input.TELEGRAM_CHAT_ID).trim();
+  }
+
+  return env;
+}
+
 function buildSaveResponse(shops, env, logs = ['Configuração salva.']) {
   return {
     ok: true,
@@ -281,6 +314,28 @@ async function runBotCheck() {
   return lastResult ?? { ok: false, output: 'Falha ao executar bot.py', code: 1 };
 }
 
+async function runMonitorCycle(options) {
+  const candidates = [
+    path.join(PROJECT_ROOT, '.venv', 'Scripts', 'python.exe'),
+    'python'
+  ];
+
+  let lastResult = null;
+  const runtimeEnv = buildPythonEnv(options.env || {});
+
+  for (const pythonBin of candidates) {
+    const result = await runCommand(pythonBin, ['bot.py'], PROJECT_ROOT, {
+      env: runtimeEnv
+    });
+    lastResult = result;
+    if (result.ok || pythonBin === 'python') {
+      break;
+    }
+  }
+
+  return lastResult ?? { ok: false, output: 'Falha ao executar bot.py', code: 1 };
+}
+
 function createWindow() {
   const win = new BrowserWindow({
     width: 1200,
@@ -332,6 +387,8 @@ ipcMain.handle('ops:sync', async (_event, payload) => {
 });
 
 ipcMain.handle('ops:runBotCheck', async () => runBotCheck());
+
+ipcMain.handle('ops:runMonitorCycle', async (_event, payload) => runMonitorCycle(payload || {}));
 
 ipcMain.handle('ops:ensureWorker', async (_event, payload) => {
   const env = saveEnv(payload.env || {});

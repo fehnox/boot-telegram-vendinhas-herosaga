@@ -384,6 +384,15 @@ def fetch_shop(url: str) -> str:
     return resp.text
 
 
+def shop_is_unavailable(html: str) -> bool:
+    normalized = (html or "").casefold()
+    return (
+        "vendedor não encontrado" in normalized
+        or "vendedor nao encontrado" in normalized
+        or "seller not found" in normalized
+    )
+
+
 def telegram_api_request(method: str, payload: dict | None = None) -> requests.Response:
     if not TOKEN:
         raise RuntimeError("TOKEN ausente")
@@ -674,6 +683,10 @@ def inspect_store(target: StoreTarget, history: dict) -> dict:
 
     logger.info("Verificando itens: %s", target.url)
     html = fetch_shop(target.url)
+    if shop_is_unavailable(html):
+        logger.warning("Loja indisponível ou ID antigo: %s", target.url)
+        return {"items_found": 0, "changes": [], "unavailable": True}
+
     inventory = parse_shop_inventory(html)
     items = {name: item.quantity for name, item in inventory.items()}
     changes = []

@@ -5,5 +5,6 @@ contextBridge.exposeInMainWorld('heroDesktop', {
   saveConfig: (payload) => ipcRenderer.invoke('config:save', payload),
   syncToVps: (payload) => ipcRenderer.invoke('ops:sync', payload),
   ensureWorker: (payload) => ipcRenderer.invoke('ops:ensureWorker', payload),
-  runBotCheck: () => ipcRenderer.invoke('ops:runBotCheck')
+  runBotCheck: () => ipcRenderer.invoke('ops:runBotCheck'),
+  runMonitorCycle: (payload) => ipcRenderer.invoke('ops:runMonitorCycle', payload)
 });
