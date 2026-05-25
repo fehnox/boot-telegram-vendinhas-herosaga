@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -uo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LOOP_SECONDS="${LOOP_SECONDS:-10}"
+
+log() {
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"
+}
 
 if ! [[ "$LOOP_SECONDS" =~ ^[0-9]+$ ]] || [ "$LOOP_SECONDS" -lt 5 ]; then
   LOOP_SECONDS=10
@@ -25,13 +29,33 @@ while true; do
   fi
 
   rm -f data/history.json
-  git pull --ff-only
+  if ! git pull --ff-only; then
+    log "git pull falhou; restaurando historico e tentando novamente no proximo ciclo"
+    if [ "$HISTORY_PRESENT" -eq 1 ] && [ -f "$HISTORY_BACKUP" ]; then
+      mv "$HISTORY_BACKUP" data/history.json
+    else
+      rm -f "$HISTORY_BACKUP"
+    fi
+    sleep "$LOOP_SECONDS"
+    continue
+  fi
 
   if [ "$HISTORY_PRESENT" -eq 1 ] && [ -f "$HISTORY_BACKUP" ]; then
     mv "$HISTORY_BACKUP" data/history.json
+  else
+    rm -f "$HISTORY_BACKUP"
+  fi
+
+  if [ ! -f .venv/bin/activate ]; then
+    log "virtualenv nao encontrada em .venv/bin/activate; tentando novamente no proximo ciclo"
+    sleep "$LOOP_SECONDS"
+    continue
   fi
 
   . .venv/bin/activate
-  python3 bot.py
+  if ! python3 bot.py; then
+    log "execucao do bot falhou; mantendo loop ativo para nova tentativa"
+  fi
+
   sleep "$LOOP_SECONDS"
 done
