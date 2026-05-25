@@ -453,9 +453,13 @@ def build_telegram_message(
     price: str | None,
     now: str,
     currency: str,
+    image_url: str | None = None,
+    hero_points: str | None = None,
 ) -> str:
     if not TELEGRAM_MESSAGE:
         return default_text
+
+    resolved_hero_points = hero_points or (price or "-")
 
     replacements = {
         "{default}": default_text,
@@ -468,6 +472,8 @@ def build_telegram_message(
         "{quantity}": str(quantity),
         "{price}": price or "-",
         "{time}": now,
+        "{hero_points}": resolved_hero_points,
+        "{img_url}": image_url or "",
     }
 
     message = TELEGRAM_MESSAGE
@@ -517,6 +523,14 @@ def format_sale_message(
     )
 
 
+def format_hero_points(price: str | None, fallback: int | str) -> str:
+    if price:
+        normalized = re.sub(r"\s*(?:c|rmt|hero points?|moedas?)\s*$", "", price, flags=re.I).strip()
+        if normalized:
+            return normalized
+    return str(fallback)
+
+
 def notify_sale(
     target: StoreTarget,
     name: str,
@@ -528,7 +542,18 @@ def notify_sale(
 ) -> bool:
     default_text = format_sale_message(target, name, before, after, price, currency)
     now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-    telegram_text = build_telegram_message(default_text, target, name, after, price, now, currency)
+    hero_points = format_hero_points(price, after)
+    telegram_text = build_telegram_message(
+        default_text,
+        target,
+        name,
+        after,
+        price,
+        now,
+        currency,
+        image_url=image_url,
+        hero_points=hero_points,
+    )
     discord_text = build_discord_message(default_text)
     telegram_sent = send_telegram(telegram_text, image_url=image_url)
     discord_sent = send_discord(discord_text, image_url=image_url)
@@ -536,6 +561,44 @@ def notify_sale(
         logger.info("Alerta enviado para %s", name)
         return True
     return False
+
+
+def run_smoke_test() -> int:
+    if not TOKEN or not CHAT_IDS:
+        logger.error("TOKEN e CHAT_ID são obrigatórios para enviar o teste")
+        return 1
+
+    target = StoreTarget(name="Teste do app", url="https://herosaga.com.br/")
+    now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    default_text = format_sale_message(
+        target,
+        "Mensagem de teste",
+        2,
+        1,
+        price="18,000",
+        currency="Hero Points",
+    )
+    telegram_text = build_telegram_message(
+        default_text,
+        target,
+        "Mensagem de teste",
+        1,
+        "18,000",
+        now,
+        "Hero Points",
+        image_url=None,
+        hero_points="18,000",
+    )
+    discord_text = build_discord_message(default_text)
+
+    telegram_sent = send_telegram(telegram_text)
+    discord_sent = send_discord(discord_text)
+    if telegram_sent or discord_sent:
+        logger.info("Teste manual enviado com sucesso")
+        return 0
+
+    logger.error("Teste manual não enviou nenhuma notificação")
+    return 1
 
 
 def load_store_state(history: dict, target: StoreTarget) -> dict:
@@ -669,6 +732,9 @@ def check_once(history: dict) -> dict:
 
 
 def main():
+    if os.getenv("TELEGRAM_SMOKE_TEST"):
+        raise SystemExit(run_smoke_test())
+
     logger.info("Monitor iniciado | lojas=%d | cooldown=%ss", len(STORE_TARGETS), COOLDOWN)
     if not TOKEN or not CHAT_IDS:
         logger.error("TOKEN e CHAT_ID são obrigatórios para enviar alertas no Telegram")

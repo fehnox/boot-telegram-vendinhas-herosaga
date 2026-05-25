@@ -147,9 +147,9 @@ function saveEnv(input) {
   return next;
 }
 
-function runCommand(bin, args, cwd) {
+function runCommand(bin, args, cwd, extra = {}) {
   return new Promise((resolve) => {
-    execFile(bin, args, { cwd, windowsHide: true }, (error, stdout, stderr) => {
+    execFile(bin, args, { cwd, windowsHide: true, env: { ...process.env, ...extra.env } }, (error, stdout, stderr) => {
       resolve({
         ok: !error,
         code: error?.code ?? 0,
@@ -184,6 +184,11 @@ async function syncToVps(options) {
 
   if (!options.VPS_SSH_TARGET) {
     logs.push('VPS_SSH_TARGET não configurado; sincronização remota ignorada.');
+    return { ok: true, logs };
+  }
+
+  if (!options.VPS_SSH_KEY_PATH) {
+    logs.push('VPS_SSH_KEY_PATH não configurado; sincronização remota ignorada.');
     return { ok: true, logs };
   }
 
@@ -246,7 +251,11 @@ async function runBotCheck() {
 
   let lastResult = null;
   for (const pythonBin of candidates) {
-    const result = await runCommand(pythonBin, ['bot.py'], PROJECT_ROOT);
+    const result = await runCommand(pythonBin, ['bot.py'], PROJECT_ROOT, {
+      env: {
+        TELEGRAM_SMOKE_TEST: '1'
+      }
+    });
     lastResult = result;
     if (result.ok || pythonBin === 'python') {
       break;
