@@ -590,9 +590,16 @@ def notify_sale(
     )
     telegram_sent = send_telegram(telegram_text, image_url=image_url)
     discord_sent = send_discord(discord_text, image_url=image_url)
-    if telegram_sent or discord_sent:
-        logger.info("Alerta enviado para %s", name)
+    if telegram_sent and discord_sent:
+        logger.info("Alerta enviado para %s (Telegram e Discord)", name)
         return True
+    if telegram_sent:
+        logger.info("Alerta enviado para %s (Telegram)", name)
+        return True
+    if discord_sent:
+        logger.warning("Discord enviou o alerta de %s, mas Telegram falhou; verifique TOKEN/CHAT_ID", name)
+        return True
+    logger.warning("Nenhum canal conseguiu enviar o alerta de %s", name)
     return False
 
 

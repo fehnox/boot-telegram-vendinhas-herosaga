@@ -41,6 +41,12 @@ function setBusy(isBusy) {
       button.style.cursor = isBusy ? 'wait' : 'pointer';
     }
   }
+
+  for (const button of document.querySelectorAll('.save-shop-btn, .remove-shop-btn')) {
+    button.disabled = isBusy;
+    button.style.opacity = isBusy ? '0.72' : '1';
+    button.style.cursor = isBusy ? 'wait' : 'pointer';
+  }
 }
 
 function setStatus(text, tone = 'info') {
@@ -59,6 +65,34 @@ function setLogs(text) {
 
 function appendLogs(lines) {
   setLogs(Array.isArray(lines) ? lines.join('\n') : String(lines || ''));
+}
+
+function setRowSavedState(row, saved, label = '') {
+  if (!row) {
+    return;
+  }
+
+  row.dataset.saved = saved ? 'true' : 'false';
+  const stateLabel = row.querySelector('.shop-save-state');
+  if (stateLabel) {
+    stateLabel.textContent = label || (saved ? 'Lojinha salva' : 'Lojinha alterada');
+  }
+}
+
+function saveAllShops(message = 'Configuração salva.') {
+  const shops = collectShops();
+  const err = validateShops(shops);
+  if (err) {
+    throw new Error(err);
+  }
+
+  return window.heroDesktop.saveConfig({ shops, env: collectEnv() }).then((result) => {
+    for (const row of document.querySelectorAll('.shop-row')) {
+      setRowSavedState(row, true);
+    }
+    appendLogs(result.logs || [message]);
+    return result;
+  });
 }
 
 function setActivePage(pageName) {
@@ -81,14 +115,43 @@ function addShopRow(shop = { name: '', url: '' }) {
   const row = fragment.querySelector('.shop-row');
   const nameInput = fragment.querySelector('.shop-name');
   const urlInput = fragment.querySelector('.shop-url');
+  const saveBtn = fragment.querySelector('.save-shop-btn');
   const removeBtn = fragment.querySelector('.remove-shop-btn');
 
   nameInput.value = shop.name || '';
   urlInput.value = shop.url || '';
+  setRowSavedState(row, Boolean((shop.name || '').trim() || (shop.url || '').trim()), shop.url ? 'Lojinha salva' : 'Lojinha não salva');
 
-  const refresh = () => updateSummary();
+  const refresh = () => {
+    setRowSavedState(row, false);
+    updateSummary();
+  };
   nameInput.addEventListener('input', refresh);
   urlInput.addEventListener('input', refresh);
+
+  saveBtn.addEventListener('click', async () => {
+    const err = validateShops(collectShops());
+    if (err) {
+      setStatus(err, 'error');
+      setLogs(err);
+      return;
+    }
+
+    setBusy(true);
+    setStatus('Salvando lojinha...', 'info');
+    try {
+      const result = await saveAllShops('Lojinha salva com sucesso.');
+      setRowSavedState(row, true, 'Lojinha salva');
+      appendLogs(result.logs || ['Lojinha salva com sucesso.']);
+      setStatus('Lojinha salva', 'success');
+      updateSummary();
+    } catch (error) {
+      setStatus(`Falha ao salvar lojinha: ${error.message}`, 'error');
+      setLogs(error.stack || error.message);
+    } finally {
+      setBusy(false);
+    }
+  });
 
   removeBtn.addEventListener('click', () => {
     row.remove();
@@ -169,6 +232,9 @@ async function load() {
     const shops = payload.shops && payload.shops.length ? payload.shops : [{ name: '', url: '' }];
     shops.forEach(addShopRow);
     fillEnv(payload.env || {});
+    for (const row of document.querySelectorAll('.shop-row')) {
+      setRowSavedState(row, true, 'Lojinha salva');
+    }
     updateSummary();
     setLogs('Configuração carregada.');
     setStatus('Ligado', 'success');
@@ -181,19 +247,10 @@ async function load() {
 }
 
 async function saveOnly() {
-  const shops = collectShops();
-  const err = validateShops(shops);
-  if (err) {
-    setStatus(err, 'error');
-    setLogs(err);
-    return;
-  }
-
   setBusy(true);
   setStatus('Salvando...', 'info');
   try {
-    const result = await window.heroDesktop.saveConfig({ shops, env: collectEnv() });
-    appendLogs(result.logs || ['Configuração salva.']);
+    const result = await saveAllShops('Configuração salva.');
     setStatus('Salvo e ligado', 'success');
     updateSummary();
   } catch (error) {
@@ -205,18 +262,16 @@ async function saveOnly() {
 }
 
 async function syncNow() {
-  const shops = collectShops();
-  const err = validateShops(shops);
-  if (err) {
-    setStatus(err, 'error');
-    setLogs(err);
-    return;
-  }
-
   setBusy(true);
   setStatus('Sincronizando...', 'info');
   setLogs('Preparando envio para GitHub e VPS...');
   try {
+    const shops = collectShops();
+    const err = validateShops(shops);
+    if (err) {
+      throw new Error(err);
+    }
+
     const result = await window.heroDesktop.syncToVps({ shops, env: collectEnv() });
     appendLogs(result.logs || ['Sincronização sem saída.']);
     setStatus(result.ok ? 'Sincronizado e ligado' : 'Desligado', result.ok ? 'success' : 'error');

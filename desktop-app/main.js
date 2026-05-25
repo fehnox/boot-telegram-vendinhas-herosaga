@@ -70,6 +70,13 @@ function saveShops(shops) {
   fs.writeFileSync(SHOP_FILE, `${lines.join('\n').trim()}\n`, 'utf8');
 }
 
+function normalizeShop(shop) {
+  return {
+    name: (shop?.name || '').trim(),
+    url: (shop?.url || '').trim()
+  };
+}
+
 function parseEnv(content) {
   const env = {};
   const lines = content.split(/\r?\n/);
@@ -157,6 +164,15 @@ function runCommand(bin, args, cwd, extra = {}) {
       });
     });
   });
+}
+
+function buildSaveResponse(shops, env, logs = ['Configuração salva.']) {
+  return {
+    ok: true,
+    shopsCount: shops.length,
+    env,
+    logs
+  };
 }
 
 async function syncToVps(options) {
@@ -298,22 +314,19 @@ ipcMain.handle('config:load', async () => {
 });
 
 ipcMain.handle('config:save', async (_event, payload) => {
-  saveShops(payload.shops || []);
+  const shops = (payload.shops || []).map(normalizeShop).filter((shop) => shop.url);
+  saveShops(shops);
   const savedEnv = saveEnv(payload.env || {});
-  return {
-    ok: true,
-    shopsCount: (payload.shops || []).length,
-    env: savedEnv,
-    logs: [
-      `Lojinhas salvas: ${(payload.shops || []).length}`,
-      'Arquivo gerado: config/shop_urls.txt',
-      'Arquivo gerado: .env'
-    ]
-  };
+  return buildSaveResponse(shops, savedEnv, [
+    `Lojinhas salvas: ${shops.length}`,
+    'Arquivo gerado: config/shop_urls.txt',
+    'Arquivo gerado: .env'
+  ]);
 });
 
 ipcMain.handle('ops:sync', async (_event, payload) => {
-  saveShops(payload.shops || []);
+  const shops = (payload.shops || []).map(normalizeShop).filter((shop) => shop.url);
+  saveShops(shops);
   const env = saveEnv(payload.env || {});
   return syncToVps(env);
 });
