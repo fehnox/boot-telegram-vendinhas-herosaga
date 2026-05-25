@@ -35,7 +35,7 @@
         "20296 Yoyo de Estimação ✨ VISUAL Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 25,000 c": 0,
         "46015 Aura Poder Elétrico Obscuro ✨ VISUAL Nenhum Nenhum Nenhum Nenhum Nenhum Nenhum 25,000 c": 0,
         "Wigner Premium Exchange Ticket": 1250,
-        "Pó de Éter": 7077,
+        "Pó de Éter": 6574,
         "Divine Cat Whiskers": 400,
         "Asas de Himavanta": 1,
         "Yoyo de Estimação": 1,
@@ -53,32 +53,32 @@
       "items_meta": {
         "Wigner Premium Exchange Ticket": {
           "price": "30 c",
-          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1001618?nocache=570877296",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1001618?nocache=1173756494",
           "currency": "Não identificado"
         },
         "Pó de Éter": {
           "price": "1 c",
-          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1000322?nocache=421271761",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1000322?nocache=1361229495",
           "currency": "Não identificado"
         },
         "Divine Cat Whiskers": {
           "price": "4 c",
-          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1001217?nocache=844794846",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1001217?nocache=1633717687",
           "currency": "Não identificado"
         },
         "Asas de Himavanta": {
           "price": "25,000 c",
-          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=20619?nocache=697798537",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=20619?nocache=1481156172",
           "currency": "Não identificado"
         },
         "Yoyo de Estimação": {
           "price": "25,000 c",
-          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=20296?nocache=2111442787",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=20296?nocache=264783568",
           "currency": "Não identificado"
         },
         "Aura Poder Elétrico Obscuro": {
           "price": "25,000 c",
-          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=46015?nocache=570057220",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=46015?nocache=541584337",
           "currency": "Não identificado"
         }
       }
@@ -123,52 +123,52 @@
       "items_meta": {
         "Letterster Card": {
           "price": "10,000 c",
-          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300509?nocache=1942477219",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300509?nocache=1717158075",
           "currency": "Não identificado"
         },
         "Ice Seahorse Card": {
           "price": "3,000 c",
-          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300512?nocache=1574673533",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300512?nocache=1830354917",
           "currency": "Não identificado"
         },
         "Jormungandr Guardian Card": {
           "price": "1,000 c",
-          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300460?nocache=1327510020",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300460?nocache=810209070",
           "currency": "Não identificado"
         },
         "Yoster Fixer Card": {
           "price": "1,500 c",
-          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300515?nocache=416785190",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300515?nocache=460193963",
           "currency": "Não identificado"
         },
         "Hallucigenia Card": {
           "price": "600 c",
-          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300374?nocache=1276728324",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300374?nocache=2022849688",
           "currency": "Não identificado"
         },
         "Intermediate Rgan Card": {
           "price": "3,500 c",
-          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300368?nocache=1373722137",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300368?nocache=1533808689",
           "currency": "Não identificado"
         },
         "Calmaring Card": {
           "price": "7,500 c",
-          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300364?nocache=170378835",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300364?nocache=532833636",
           "currency": "Não identificado"
         },
         "Icewind's Egg Card": {
           "price": "3,500 c",
-          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300456?nocache=491593749",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300456?nocache=1370379031",
           "currency": "Não identificado"
         },
         "Ash Hopper Card": {
           "price": "13,000 c",
-          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300218?nocache=329870263",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300218?nocache=2096086618",
           "currency": "Não identificado"
         },
         "Superior Rgan Shaman Card": {
           "price": "4,500 c",
-          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300462?nocache=189675331",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300462?nocache=731052801",
           "currency": "Não identificado"
         }
       }
@@ -189,7 +189,7 @@
       "items_meta": {
         "Poenitentia Scipione": {
           "price": "18,000 c",
-          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=590103?nocache=1516307002",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=590103?nocache=1949491311",
           "currency": "Não identificado"
         }
       }
