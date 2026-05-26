@@ -178,7 +178,7 @@ def detect_currency_for_price(price: str | None) -> str:
         return "Hero Points"
     if re.search(r"\b(?:rmt|moeda[s]?\s*rmt)\b", normalized_price):
         return "Moeda RMT"
-    if re.search(r"\b(?:zeny|z)\b", normalized_price) or re.search(r"\b\d[\d.,]*\s*c\b", normalized_price):
+    if re.search(r"\b(?:zeny|z)\b", normalized_price):
         return "Zeny"
     return "Não identificado"
 
@@ -194,7 +194,7 @@ def format_sale_price(price: str | None, currency: str) -> str:
         return re.sub(r"\s*(?:c|zeny|z)\s*$", "", price_text, flags=re.I).strip() or price_text
 
     if currency_label == "Hero Points":
-        return re.sub(r"\s*(?:hero points?|h points?|hp)\s*$", "", price_text, flags=re.I).strip() or price_text
+        return re.sub(r"\s*(?:c|hero points?|h points?|hp)\s*$", "", price_text, flags=re.I).strip() or price_text
 
     if currency_label == "Moeda RMT":
         return re.sub(r"\s*(?:moeda[s]?\s*rmt|rmt)\s*$", "", price_text, flags=re.I).strip() or price_text
@@ -272,7 +272,10 @@ def resolve_currency(target: StoreTarget, item_name: str, inventory: dict[str, "
         return normalize_sale_currency_label(detected_currency)
 
     price_currency = detect_currency_for_price(price)
-    return normalize_sale_currency_label(price_currency)
+    if price_currency != "Não identificado":
+        return normalize_sale_currency_label(price_currency)
+
+    return "Hero Points"
 
 
 STORE_TARGETS = load_store_targets()
