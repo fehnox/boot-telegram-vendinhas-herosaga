@@ -158,6 +158,50 @@ def detect_currency_for_sale(sold_item_name: str, inventory: dict[str, "ShopItem
     return "Não identificado"
 
 
+def normalize_sale_currency_label(currency: str) -> str:
+    normalized = (currency or "").strip().casefold()
+    if normalized in {"hero points", "hero point", "h point", "h points"}:
+        return "Hero Points"
+    if normalized in {"moedas rmt", "moeda rmt", "rmt"}:
+        return "Moeda RMT"
+    if normalized in {"zeny", "c", "coins", "coin"}:
+        return "Zeny"
+    return currency or "Não identificado"
+
+
+def detect_currency_for_price(price: str | None) -> str:
+    if not price:
+        return "Não identificado"
+
+    normalized_price = price.casefold()
+    if re.search(r"\b(?:hero\s*points?|h\s*points?|hp)\b", normalized_price):
+        return "Hero Points"
+    if re.search(r"\b(?:rmt|moeda[s]?\s*rmt)\b", normalized_price):
+        return "Moeda RMT"
+    if re.search(r"\b(?:zeny|z)\b", normalized_price) or re.search(r"\b\d[\d.,]*\s*c\b", normalized_price):
+        return "Zeny"
+    return "Não identificado"
+
+
+def format_sale_price(price: str | None, currency: str) -> str:
+    price_text = (price or "-").strip()
+    currency_label = normalize_sale_currency_label(currency)
+
+    if not price_text or price_text == "-":
+        return "-"
+
+    if currency_label == "Zeny":
+        return re.sub(r"\s*(?:c|zeny|z)\s*$", "", price_text, flags=re.I).strip() or price_text
+
+    if currency_label == "Hero Points":
+        return re.sub(r"\s*(?:hero points?|h points?|hp)\s*$", "", price_text, flags=re.I).strip() or price_text
+
+    if currency_label == "Moeda RMT":
+        return re.sub(r"\s*(?:moeda[s]?\s*rmt|rmt)\s*$", "", price_text, flags=re.I).strip() or price_text
+
+    return price_text
+
+
 @dataclass(frozen=True)
 class StoreTarget:
     name: str
@@ -508,6 +552,7 @@ def build_discord_message(
     target: StoreTarget,
     name: str,
     quantity: int,
+    bought_quantity: int,
     price: str | None,
     now: str,
     currency: str,
@@ -528,6 +573,7 @@ def build_discord_message(
         "{coin}": currency,
         "{item}": name,
         "{quantity}": str(quantity),
+        "{bought_quantity}": str(bought_quantity),
         "{price}": price or "-",
         "{time}": now,
         "{hero_points}": resolved_hero_points,
@@ -545,6 +591,7 @@ def build_telegram_message(
     target: StoreTarget,
     name: str,
     quantity: int,
+    bought_quantity: int,
     price: str | None,
     now: str,
     currency: str,
@@ -565,6 +612,7 @@ def build_telegram_message(
         "{coin}": currency,
         "{item}": name,
         "{quantity}": str(quantity),
+        "{bought_quantity}": str(bought_quantity),
         "{price}": price or "-",
         "{time}": now,
         "{hero_points}": resolved_hero_points,
@@ -610,13 +658,16 @@ def format_sale_message(
     now: datetime | None = None,
 ) -> str:
     current_time = (now or now_sao_paulo()).strftime("%d/%m/%Y %H:%M:%S")
-    price_text = price or "-"
+    bought_quantity = max(before - after, 0)
+    price_text = format_sale_price(price, currency)
+    currency_text = normalize_sale_currency_label(currency)
     return (
         f"🛒 VENDA DETECTADA\n"
         f"Loja: {target.name}\n"
-        f"Moeda: {currency}\n"
+        f"Moeda: {currency_text}\n"
         f"Item: {name}\n"
         f"Quantidade: {after}\n"
+        f"Quantidade comprada: {bought_quantity}\n"
         f"Preço: {price_text}\n"
         f"Hora: {current_time}"
     )
@@ -640,7 +691,11 @@ def notify_sale(
     currency: str = "Não identificado",
 ) -> bool:
     current_time = now_sao_paulo()
-    default_text = format_sale_message(target, name, before, after, price, currency, now=current_time)
+    bought_quantity = max(before - after, 0)
+    resolved_currency = normalize_sale_currency_label(currency)
+    if resolved_currency == "Não identificado":
+        resolved_currency = normalize_sale_currency_label(detect_currency_for_price(price))
+    default_text = format_sale_message(target, name, before, after, price, resolved_currency, now=current_time)
     now = current_time.strftime("%d/%m/%Y %H:%M:%S")
     hero_points = format_hero_points(price, after)
     telegram_text = build_telegram_message(
@@ -648,9 +703,10 @@ def notify_sale(
         target,
         name,
         after,
+        bought_quantity,
         price,
         now,
-        currency,
+        resolved_currency,
         image_url=image_url,
         hero_points=hero_points,
     )
@@ -659,9 +715,10 @@ def notify_sale(
         target,
         name,
         after,
+        bought_quantity,
         price,
         now,
-        currency,
+        resolved_currency,
         image_url=image_url,
         hero_points=hero_points,
     )
@@ -700,6 +757,7 @@ def run_smoke_test() -> int:
         target,
         "Mensagem de teste",
         1,
+        1,
         "18,000",
         now,
         "Hero Points",
@@ -710,6 +768,7 @@ def run_smoke_test() -> int:
         default_text,
         target,
         "Mensagem de teste",
+        1,
         1,
         "18,000",
         now,
