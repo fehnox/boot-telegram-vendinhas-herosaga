@@ -2,14 +2,14 @@
 set -uo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-LOOP_SECONDS="${LOOP_SECONDS:-10}"
+LOOP_SECONDS="${LOOP_SECONDS:-5}"
 
 log() {
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"
 }
 
-if ! [[ "$LOOP_SECONDS" =~ ^[0-9]+$ ]] || [ "$LOOP_SECONDS" -lt 5 ]; then
-  LOOP_SECONDS=10
+if ! [[ "$LOOP_SECONDS" =~ ^[0-9]+$ ]] || [ "$LOOP_SECONDS" -lt 3 ]; then
+  LOOP_SECONDS=5
 fi
 
 cd "$ROOT_DIR"
