@@ -40,6 +40,9 @@ const buttons = [
   document.getElementById('add-shop-btn')
 ];
 
+let autoSaveMessageTimer = null;
+let isLoadingConfig = false;
+
 function setBusy(isBusy) {
   for (const button of buttons) {
     if (button) {
@@ -72,6 +75,28 @@ function setLogs(text) {
 
 function appendLogs(lines) {
   setLogs(Array.isArray(lines) ? lines.join('\n') : String(lines || ''));
+}
+
+function scheduleAutoSaveMessageTemplates() {
+  if (isLoadingConfig) {
+    return;
+  }
+
+  if (autoSaveMessageTimer) {
+    clearTimeout(autoSaveMessageTimer);
+  }
+
+  autoSaveMessageTimer = setTimeout(async () => {
+    autoSaveMessageTimer = null;
+
+    try {
+      await window.heroDesktop.saveConfig({ shops: collectShops(), env: collectEnv() });
+      setStatus('Mensagens salvas automaticamente', 'success');
+    } catch (error) {
+      setStatus(`Falha ao salvar mensagens: ${error.message}`, 'error');
+      setLogs(error.stack || error.message);
+    }
+  }, 800);
 }
 
 function setRowSavedState(row, saved, label = '') {
@@ -264,6 +289,7 @@ function validateShops(shops) {
 }
 
 async function load() {
+  isLoadingConfig = true;
   setBusy(true);
   setStatus('Conectando...', 'info');
   try {
@@ -282,6 +308,7 @@ async function load() {
     setStatus(`Erro ao carregar: ${error.message}`, 'error');
     setLogs(error.stack || error.message);
   } finally {
+    isLoadingConfig = false;
     setBusy(false);
   }
 }
@@ -388,6 +415,13 @@ for (const field of envFields) {
   const element = document.getElementById(field);
   if (element) {
     element.addEventListener('input', updateSummary);
+  }
+}
+
+for (const field of ['TELEGRAM_MESSAGE', 'DISCORD_MESSAGE']) {
+  const element = document.getElementById(field);
+  if (element) {
+    element.addEventListener('input', scheduleAutoSaveMessageTemplates);
   }
 }
 
