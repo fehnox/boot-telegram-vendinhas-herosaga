@@ -79,20 +79,45 @@ function setRowSavedState(row, saved, label = '') {
   }
 }
 
-function saveAllShops(message = 'Configuração salva.') {
+function hasVpsConfig(env = collectEnv()) {
+  return Boolean(env.VPS_SSH_TARGET && env.VPS_PROJECT_DIR);
+}
+
+async function syncShopsToVps(shops, env) {
+  const result = await window.heroDesktop.syncToVps({ shops, env });
+  appendLogs(result.logs || ['Sincronização sem saída.']);
+  return result;
+}
+
+async function saveAllShops(options = {}) {
+  const { message = 'Configuração salva.', syncRemote = false } = options;
   const shops = collectShops();
   const err = validateShops(shops);
   if (err) {
     throw new Error(err);
   }
 
-  return window.heroDesktop.saveConfig({ shops, env: collectEnv() }).then((result) => {
-    for (const row of document.querySelectorAll('.shop-row')) {
-      setRowSavedState(row, true);
-    }
-    appendLogs(result.logs || [message]);
+  const env = collectEnv();
+  const result = await window.heroDesktop.saveConfig({ shops, env });
+
+  for (const row of document.querySelectorAll('.shop-row')) {
+    setRowSavedState(row, true);
+  }
+  appendLogs(result.logs || [message]);
+
+  if (!syncRemote) {
     return result;
-  });
+  }
+
+  if (!hasVpsConfig(env)) {
+    appendLogs(['VPS não configurada; salvamento local concluído.']);
+    return result;
+  }
+
+  setStatus('Sincronizando VPS...', 'info');
+  const syncResult = await syncShopsToVps(shops, env);
+  setStatus(syncResult.ok ? 'Sincronizado e ligado' : 'Desligado', syncResult.ok ? 'success' : 'error');
+  return syncResult;
 }
 
 function setActivePage(pageName) {
@@ -140,10 +165,10 @@ function addShopRow(shop = { name: '', url: '' }) {
     setBusy(true);
     setStatus('Salvando lojinha...', 'info');
     try {
-      const result = await saveAllShops('Lojinha salva com sucesso.');
+      const result = await saveAllShops({ message: 'Lojinha salva com sucesso.', syncRemote: true });
       setRowSavedState(row, true, 'Lojinha salva');
       appendLogs(result.logs || ['Lojinha salva com sucesso.']);
-      setStatus('Lojinha salva', 'success');
+      setStatus('Lojinha salva e sincronizada', 'success');
       updateSummary();
     } catch (error) {
       setStatus(`Falha ao salvar lojinha: ${error.message}`, 'error');
@@ -250,11 +275,28 @@ async function saveOnly() {
   setBusy(true);
   setStatus('Salvando...', 'info');
   try {
-    const result = await saveAllShops('Configuração salva.');
+    const result = await saveAllShops({ message: 'Configuração salva.' });
     setStatus('Salvo e ligado', 'success');
     updateSummary();
   } catch (error) {
     setStatus(`Falha ao salvar: ${error.message}`, 'error');
+    setLogs(error.stack || error.message);
+  } finally {
+    setBusy(false);
+  }
+}
+
+async function saveShopsAndSync() {
+  setBusy(true);
+  setStatus('Salvando e sincronizando...', 'info');
+  setLogs('Atualizando lojas locais e enviando a versão nova para a VPS...');
+  try {
+    const result = await saveAllShops({ message: 'Configuração salva.', syncRemote: true });
+    appendLogs(result.logs || ['Sincronização concluída.']);
+    setStatus(result.ok ? 'Lojinhas sincronizadas' : 'Sincronização falhou', result.ok ? 'success' : 'error');
+    updateSummary();
+  } catch (error) {
+    setStatus(`Falha ao sincronizar lojinhas: ${error.message}`, 'error');
     setLogs(error.stack || error.message);
   } finally {
     setBusy(false);
@@ -317,7 +359,7 @@ async function runBotCheck() {
 }
 
 document.getElementById('add-shop-btn').addEventListener('click', () => addShopRow());
-document.getElementById('save-btn').addEventListener('click', saveOnly);
+document.getElementById('save-btn').addEventListener('click', saveShopsAndSync);
 document.getElementById('save-only-btn').addEventListener('click', saveOnly);
 document.getElementById('sync-only-btn').addEventListener('click', syncNow);
 document.getElementById('ensure-worker-btn').addEventListener('click', ensureWorker);

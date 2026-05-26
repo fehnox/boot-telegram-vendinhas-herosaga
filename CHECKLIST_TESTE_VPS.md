@@ -24,6 +24,7 @@ Campos obrigatorios para sync remoto no app:
 
 Observacao:
 - Se VPS_SSH_KEY_PATH estiver vazio, a sincronizacao UI -> VPS pode falhar.
+- Depois de trocar as lojas, espere a VPS completar pelo menos 1 ciclo inteiro antes de fazer a compra de teste; o primeiro ciclo só cria a base das novas URLs.
 
 3. Commit e push:
 
@@ -67,6 +68,7 @@ Esperado no log:
 - Verificando itens
 - Verificacao concluida
 - Em caso de erro temporario: mensagens de retry sem encerrar o loop
+- Se as lojas foram atualizadas recentemente, o primeiro ciclo pode registrar apenas o baseline; a compra de teste deve acontecer depois dessa rodada inicial.
 
 ## 3) Teste real de notificacao
 

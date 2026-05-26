@@ -22,5 +22,7 @@ npm start
 ## Observações
 
 - O botão **Salvar + sincronizar VPS** roda `git add/commit/push` e depois `ssh` na VPS.
+- O botão **Salvar** na aba de lojinhas também sincroniza a VPS quando `VPS_SSH_TARGET` e `VPS_PROJECT_DIR` estão preenchidos.
 - O arquivo `.env` local é enviado para a VPS via `scp` durante a sincronização.
+- `VPS_SSH_KEY_PATH` é opcional; se estiver vazio, o app tenta usar a autenticação SSH padrão do Windows.
 - Se sua chave SSH tiver senha, o `ssh/scp` pode pedir confirmação no terminal do sistema.

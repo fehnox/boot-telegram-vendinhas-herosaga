@@ -237,8 +237,7 @@ async function syncToVps(options) {
   }
 
   if (!options.VPS_SSH_KEY_PATH) {
-    logs.push('VPS_SSH_KEY_PATH não configurado; sincronização remota ignorada.');
-    return { ok: true, logs };
+    logs.push('VPS_SSH_KEY_PATH não configurado; usando autenticação SSH padrão, se disponível.');
   }
 
   const sshArgs = [];
@@ -250,6 +249,11 @@ async function syncToVps(options) {
   const pull = await runCommand('ssh', sshArgs, PROJECT_ROOT);
   logs.push(`ssh git pull: ${pull.ok ? 'OK' : 'FALHOU'}`);
   if (pull.output) logs.push(pull.output);
+
+  if (!pull.ok) {
+    logs.push('GitHub já foi atualizado; a VPS pode pegar a mudança no próximo ciclo do worker se ele estiver rodando.');
+    return { ok: false, logs };
+  }
 
   if (pull.ok) {
     const scpArgs = [];
@@ -269,7 +273,7 @@ async function syncToVps(options) {
     }
   }
 
-  return { ok: pull.ok, logs };
+  return { ok: true, logs };
 }
 
 async function ensureRemoteWorker(options) {
@@ -283,7 +287,7 @@ async function ensureRemoteWorker(options) {
   }
   sshArgs.push(
     options.VPS_SSH_TARGET,
-    `cd ${options.VPS_PROJECT_DIR || '/home/ubuntu/boot-telegram-vendinhas-herosaga'} && tmux kill-session -t bot 2>/dev/null || true; LOOP_SECONDS=10 tmux new-session -d -s bot 'bash scripts/run_vps_worker.sh'`
+    `cd ${options.VPS_PROJECT_DIR || '/home/ubuntu/boot-telegram-vendinhas-herosaga'} && tmux kill-session -t bot 2>/dev/null || true; LOOP_SECONDS=5 tmux new-session -d -s bot 'bash scripts/run_vps_worker.sh'`
   );
 
   const restart = await runCommand('ssh', sshArgs, PROJECT_ROOT);

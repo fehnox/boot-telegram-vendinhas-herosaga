@@ -33,6 +33,7 @@ Formato aceito por linha:
 - ou apenas `url`
 
 Se você quiser sobrescrever isso localmente, ainda pode usar a variável `SHOP_URLS` no `.env`.
+O worker usa primeiro [config/shop_urls.txt](config/shop_urls.txt); o `.env` fica como fallback quando o arquivo não tiver lojas válidas.
 
 Exemplo:
 
@@ -51,7 +52,7 @@ python ui.py
 
 Depois abra `http://127.0.0.1:8787` no navegador.
 
-A UI salva em [config/shop_urls.txt](config/shop_urls.txt), executa `git add/commit/push` e faz `ssh` para rodar `git pull` na VPS.
+A UI salva em [config/shop_urls.txt](config/shop_urls.txt), executa `git add/commit/push` e faz `ssh` para rodar `git pull` na VPS. O botão de salvar nas lojinhas também sincroniza a VPS quando `VPS_SSH_TARGET` e `VPS_PROJECT_DIR` estão preenchidos.
 
 Variáveis úteis no `.env` para a UI:
 

@@ -24,9 +24,10 @@ import os
 import re
 import time
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import urljoin
+from zoneinfo import ZoneInfo
 
 import requests
 from bs4 import BeautifulSoup
@@ -104,6 +105,13 @@ SHOP_URL = os.getenv("SHOP_URL", DEFAULT_SHOP_URL)
 STORE_TARGETS = []
 BASE_URL = "https://herosaga.com.br/"
 TELEGRAM_DISABLE_NOTIFICATION = os.getenv("TELEGRAM_DISABLE_NOTIFICATION", "false").strip().casefold() in {"1", "true", "yes", "on"}
+try:
+    LOCAL_TZ = ZoneInfo("America/Belem")
+except Exception:
+    try:
+        LOCAL_TZ = ZoneInfo("America/Sao_Paulo")
+    except Exception:
+        LOCAL_TZ = timezone(timedelta(hours=-3))
 
 CURRENCY_KEYWORDS = {
     "Hero Points": [
@@ -138,8 +146,8 @@ def detect_currency_for_sale(sold_item_name: str, inventory: dict[str, "ShopItem
         return sold_currency
 
     counts = {"Hero Points": 0, "Moedas RMT": 0}
-    for item_name in inventory.keys():
-        currency = detect_currency_from_text(item_name)
+    for item in inventory.values():
+        currency = detect_currency_from_text(item.name)
         if currency in counts:
             counts[currency] += 1
 
@@ -176,6 +184,18 @@ def parse_store_target(line: str, index: int) -> StoreTarget | None:
 
 
 def load_store_targets() -> list[StoreTarget]:
+    if SHOP_URLS_FILE.exists():
+        targets = []
+        for line in SHOP_URLS_FILE.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            target = parse_store_target(line, len(targets) + 1)
+            if target:
+                targets.append(target)
+        if targets:
+            return targets
+
     env_value = os.getenv("SHOP_URLS", "").strip()
     if env_value:
         targets = []
@@ -188,18 +208,6 @@ def load_store_targets() -> list[StoreTarget]:
             if target:
                 targets.append(target)
 
-        if targets:
-            return targets
-
-    if SHOP_URLS_FILE.exists():
-        targets = []
-        for line in SHOP_URLS_FILE.read_text(encoding="utf-8").splitlines():
-            line = line.strip()
-            if not line or line.startswith("#"):
-                continue
-            target = parse_store_target(line, len(targets) + 1)
-            if target:
-                targets.append(target)
         if targets:
             return targets
 
@@ -331,6 +339,7 @@ def parse_shop(html: str) -> dict:
 
 @dataclass(frozen=True)
 class ShopItem:
+    item_id: str
     name: str
     quantity: int
     price: str | None = None
@@ -341,24 +350,42 @@ def parse_shop_inventory(html: str) -> dict[str, ShopItem]:
     soup = BeautifulSoup(html, "html.parser")
     inventory: dict[str, ShopItem] = {}
 
-    for tr in soup.find_all("tr"):
+    rows = soup.select("table.items-table tbody tr") or soup.find_all("tr")
+
+    for index, tr in enumerate(rows, start=1):
         texts = [t.strip() for t in tr.stripped_strings if t.strip()]
         if len(texts) < 2:
             continue
 
-        if not re.fullmatch(r"\d+", texts[0]):
-            continue
+        item_id = None
+        item_id_cell = tr.select_one("td.item-id a")
+        if item_id_cell:
+            item_id_match = re.search(r"(\d+)", item_id_cell.get_text(strip=True))
+            if item_id_match:
+                item_id = item_id_match.group(1)
 
-        item_name = texts[1].strip()
+        if item_id is None:
+            numeric_tokens = [token for token in texts if re.fullmatch(r"\d+", token)]
+            if numeric_tokens:
+                item_id = numeric_tokens[0]
+
+        if item_id is None:
+            item_id = f"row-{index}"
+
+        name_cell = tr.select_one(".item-name-cell a") or tr.select_one("td:nth-of-type(2)")
+        item_name = name_cell.get_text(" ", strip=True) if name_cell else texts[1].strip()
         if not item_name:
             continue
 
-        qty_match = re.search(r"(\d+)(?!.*\d)", " ".join(texts))
+        quantity_cell = tr.select_one(".item-amount") or tr.select_one("td:last-child")
+        qty_source = quantity_cell.get_text(" ", strip=True) if quantity_cell else " ".join(texts)
+        qty_match = re.search(r"(\d+)(?!.*\d)", qty_source)
         if not qty_match:
             continue
 
         quantity = int(qty_match.group(1))
-        price = texts[-2].strip() if len(texts) >= 2 else None
+        price_cell = tr.select_one(".item-price") or tr.select_one("td:nth-last-child(2)")
+        price = price_cell.get_text(" ", strip=True) if price_cell else (texts[-2].strip() if len(texts) >= 2 else None)
         if price and re.fullmatch(r"\d+", price):
             price = None
 
@@ -367,7 +394,42 @@ def parse_shop_inventory(html: str) -> dict[str, ShopItem]:
         if img and img.get("src"):
             image_url = urljoin(BASE_URL, img.get("src"))
 
-        inventory[item_name] = ShopItem(
+        inventory[item_id] = ShopItem(
+            item_id=item_id,
+            name=item_name,
+            quantity=quantity,
+            price=price,
+            image_url=image_url,
+        )
+
+    if inventory:
+        return inventory
+
+    for index, div in enumerate(soup.select(".item, .vending-item, .produto, .shop-item"), start=1):
+        texts = [t.strip() for t in div.stripped_strings if t.strip()]
+        if len(texts) < 2:
+            continue
+
+        qty_match = re.search(r"(\d+)(?!.*\d)", " ".join(texts))
+        if not qty_match:
+            continue
+
+        item_id_match = re.search(r"\b(\d{4,})\b", " ".join(texts))
+        item_id = item_id_match.group(1) if item_id_match else f"row-{index}"
+        item_name = texts[1].strip()
+        if not item_name:
+            continue
+
+        quantity = int(qty_match.group(1))
+        price_match = re.search(r"(\d[\d.,]*\s*(?:c|z|zeny|hero points?|moedas?|rmt))", " ".join(texts), re.I)
+        price = price_match.group(1).strip() if price_match else None
+        image_url = None
+        img = div.find("img")
+        if img and img.get("src"):
+            image_url = urljoin(BASE_URL, img.get("src"))
+
+        inventory[item_id] = ShopItem(
+            item_id=item_id,
             name=item_name,
             quantity=quantity,
             price=price,
@@ -534,6 +596,10 @@ def send_discord(text: str, image_url: str | None = None) -> bool:
         return False
 
 
+def now_sao_paulo() -> datetime:
+    return datetime.now(LOCAL_TZ)
+
+
 def format_sale_message(
     target: StoreTarget,
     name: str,
@@ -541,8 +607,9 @@ def format_sale_message(
     after: int,
     price: str | None = None,
     currency: str = "Não identificado",
+    now: datetime | None = None,
 ) -> str:
-    now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    current_time = (now or now_sao_paulo()).strftime("%d/%m/%Y %H:%M:%S")
     price_text = price or "-"
     return (
         f"🛒 VENDA DETECTADA\n"
@@ -551,7 +618,7 @@ def format_sale_message(
         f"Item: {name}\n"
         f"Quantidade: {after}\n"
         f"Preço: {price_text}\n"
-        f"Hora: {now}"
+        f"Hora: {current_time}"
     )
 
 
@@ -572,8 +639,9 @@ def notify_sale(
     image_url: str | None = None,
     currency: str = "Não identificado",
 ) -> bool:
-    default_text = format_sale_message(target, name, before, after, price, currency)
-    now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    current_time = now_sao_paulo()
+    default_text = format_sale_message(target, name, before, after, price, currency, now=current_time)
+    now = current_time.strftime("%d/%m/%Y %H:%M:%S")
     hero_points = format_hero_points(price, after)
     telegram_text = build_telegram_message(
         default_text,
@@ -618,7 +686,7 @@ def run_smoke_test() -> int:
         return 1
 
     target = StoreTarget(name="Teste do app", url="https://herosaga.com.br/")
-    now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    now = now_sao_paulo().strftime("%d/%m/%Y %H:%M:%S")
     default_text = format_sale_message(
         target,
         "Mensagem de teste",
@@ -688,7 +756,7 @@ def inspect_store(target: StoreTarget, history: dict) -> dict:
         return {"items_found": 0, "changes": [], "unavailable": True}
 
     inventory = parse_shop_inventory(html)
-    items = {name: item.quantity for name, item in inventory.items()}
+    items = {item_key: item.quantity for item_key, item in inventory.items()}
     changes = []
 
     if not items:
@@ -698,36 +766,37 @@ def inspect_store(target: StoreTarget, history: dict) -> dict:
     logger.info("Itens encontrados na loja %s: %d", target.name, len(items))
     now_ts = int(time.time())
 
-    for name, qty in items.items():
-        logger.info("Item encontrado: %s | quantidade=%s", name, qty)
-        item = inventory.get(name)
-        currency = detect_currency_for_sale(name, inventory)
+    for item_key, qty in items.items():
+        item = inventory.get(item_key)
+        item_name = item.name if item else item_key
+        logger.info("Item encontrado: %s | quantidade=%s", item_name, qty)
+        currency = detect_currency_for_sale(item_name, inventory)
         if currency == "Não identificado":
-            cached_currency = items_meta.get(name, {}).get("currency")
+            cached_currency = items_meta.get(item_key, {}).get("currency")
             if cached_currency:
                 currency = cached_currency
 
-        items_meta[name] = {
+        items_meta[item_key] = {
             "price": item.price if item else None,
             "image_url": item.image_url if item else None,
             "currency": currency,
         }
 
-        prev = quantities.get(name)
+        prev = quantities.get(item_key)
         if prev is None:
-            quantities[name] = qty
+            quantities[item_key] = qty
             continue
 
         if qty < prev:
-            alert_key = f"{target.url}:{name}"
+            alert_key = f"{target.url}:{item_key}"
             if should_alert(last_alerts, alert_key, now_ts):
-                sale_meta = items_meta.get(name, {})
-                sale_currency = detect_currency_for_sale(name, inventory)
+                sale_meta = items_meta.get(item_key, {})
+                sale_currency = detect_currency_for_sale(item_name, inventory)
                 if sale_currency == "Não identificado":
                     sale_currency = sale_meta.get("currency", "Não identificado")
                 if notify_sale(
                     target,
-                    name,
+                    item_name,
                     prev,
                     qty,
                     price=(item.price if item else None) or sale_meta.get("price"),
@@ -735,43 +804,46 @@ def inspect_store(target: StoreTarget, history: dict) -> dict:
                     currency=sale_currency,
                 ):
                     register_alert(last_alerts, alert_key, now_ts)
-                    changes.append((name, prev, qty))
+                    changes.append((item_name, prev, qty))
             else:
-                logger.warning("Mudança repetida em cooldown para %s", name)
+                logger.warning("Mudança repetida em cooldown para %s", item_name)
 
-        quantities[name] = qty
+        quantities[item_key] = qty
 
-    missing_items = [name for name in quantities.keys() if name not in items]
-    for name in missing_items:
-        prev = quantities.get(name, 0)
-        if prev > 0:
-            alert_key = f"{target.url}:{name}"
-            if should_alert(last_alerts, alert_key, now_ts):
-                item = inventory.get(name)
-                sale_meta = items_meta.get(name, {})
-                currency = detect_currency_for_sale(name, inventory)
-                if currency == "Não identificado":
-                    currency = sale_meta.get("currency", "Não identificado")
-                if notify_sale(
-                    target,
-                    name,
-                    prev,
-                    0,
-                    price=(item.price if item else None) or sale_meta.get("price"),
-                    image_url=(item.image_url if item else None) or sale_meta.get("image_url"),
-                    currency=currency,
-                ):
-                    register_alert(last_alerts, alert_key, now_ts)
-                    changes.append((name, prev, 0))
-            else:
-                logger.warning("Mudança repetida em cooldown para %s", name)
-        quantities[name] = 0
+    missing_item_keys = [item_key for item_key in quantities.keys() if item_key not in items]
+    for item_key in missing_item_keys:
+        prev = quantities.get(item_key)
+        if prev is None:
+            continue
+
+        item = inventory.get(item_key)
+        item_name = item.name if item else item_key
+        sale_meta = items_meta.get(item_key, {})
+        alert_key = f"{target.url}:{item_key}"
+        if should_alert(last_alerts, alert_key, now_ts):
+            sale_currency = detect_currency_for_sale(item_name, inventory)
+            if sale_currency == "Não identificado":
+                sale_currency = sale_meta.get("currency", "Não identificado")
+            if notify_sale(
+                target,
+                item_name,
+                prev,
+                0,
+                price=(item.price if item else None) or sale_meta.get("price"),
+                image_url=(item.image_url if item else None) or sale_meta.get("image_url"),
+                currency=sale_currency,
+            ):
+                register_alert(last_alerts, alert_key, now_ts)
+                changes.append((item_name, prev, 0))
+        else:
+            logger.warning("Mudança repetida em cooldown para %s", item_name)
+
+        quantities[item_key] = 0
 
     if not changes:
         logger.info("Nenhuma mudança encontrada em %s", target.name)
 
     return {"items_found": len(items), "changes": changes}
-
 
 def check_once(history: dict) -> dict:
     results = []
@@ -781,7 +853,7 @@ def check_once(history: dict) -> dict:
     for target in STORE_TARGETS:
         try:
             result = inspect_store(target, history)
-            results.append({"target": target.name, **result})
+            results.append({"store": target.name, **result})
             total_items += result["items_found"]
             total_changes += len(result["changes"])
         except requests.RequestException:
