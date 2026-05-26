@@ -17,6 +17,9 @@ const shopCurrencyOptions = [
   { value: 'Moeda RMT', label: 'Moeda RMT' }
 ];
 
+const DEFAULT_TELEGRAM_MESSAGE = '🛒 VENDA DETECTADA\nLoja: {store}\nMoeda: {currency}\nItem: {item}\nQuantidade: {quantity}\nQuantidade comprada: {bought_quantity}\nPreço: {price}\nHora: {time}\n\n{img_url}';
+const DEFAULT_DISCORD_MESSAGE = '[ALERTA HERO] {default}';
+
 const envFields = [
   'TOKEN',
   'CHAT_ID',
@@ -37,7 +40,8 @@ const buttons = [
   document.getElementById('sync-only-btn'),
   document.getElementById('ensure-worker-btn'),
   document.getElementById('run-bot-btn'),
-  document.getElementById('add-shop-btn')
+  document.getElementById('add-shop-btn'),
+  document.getElementById('restore-messages-btn')
 ];
 
 let autoSaveMessageTimer = null;
@@ -75,6 +79,21 @@ function setLogs(text) {
 
 function appendLogs(lines) {
   setLogs(Array.isArray(lines) ? lines.join('\n') : String(lines || ''));
+}
+
+function restoreDefaultMessages() {
+  const telegramMessage = document.getElementById('TELEGRAM_MESSAGE');
+  const discordMessage = document.getElementById('DISCORD_MESSAGE');
+
+  if (telegramMessage) {
+    telegramMessage.value = DEFAULT_TELEGRAM_MESSAGE;
+  }
+
+  if (discordMessage) {
+    discordMessage.value = DEFAULT_DISCORD_MESSAGE;
+  }
+
+  scheduleAutoSaveMessageTemplates();
 }
 
 function scheduleAutoSaveMessageTemplates() {
@@ -406,6 +425,10 @@ document.getElementById('save-only-btn').addEventListener('click', saveOnly);
 document.getElementById('sync-only-btn').addEventListener('click', syncNow);
 document.getElementById('ensure-worker-btn').addEventListener('click', ensureWorker);
 document.getElementById('run-bot-btn').addEventListener('click', runBotCheck);
+const restoreMessagesBtn = document.getElementById('restore-messages-btn');
+if (restoreMessagesBtn) {
+  restoreMessagesBtn.addEventListener('click', restoreDefaultMessages);
+}
 
 for (const button of pageButtons) {
   button.addEventListener('click', () => setActivePage(button.dataset.page));
