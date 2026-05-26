@@ -16,7 +16,7 @@ function ensureFiles() {
   if (!fs.existsSync(SHOP_FILE)) {
     fs.writeFileSync(
       SHOP_FILE,
-      '# Formato: nome|url\n# Se não quiser nome, pode deixar só a URL.\n',
+      '# Formato: nome|url|moeda\n# Se não quiser nome, pode deixar só a URL.\n# Moeda opcional: Zeny, Hero Points ou Moeda RMT.\n',
       'utf8'
     );
   }
@@ -32,10 +32,11 @@ function parseShopLine(line) {
     return null;
   }
   if (clean.includes('|')) {
-    const [name, url] = clean.split('|', 2).map((part) => part.trim());
-    return { name, url };
+    const parts = clean.split('|').map((part) => part.trim());
+    const [name = '', url = '', currency = ''] = parts;
+    return { name, url, currency };
   }
-  return { name: '', url: clean };
+  return { name: '', url: clean, currency: '' };
 }
 
 function loadShops() {
@@ -53,18 +54,24 @@ function loadShops() {
 
 function saveShops(shops) {
   const lines = [
-    '# Formato: nome|url',
+    '# Formato: nome|url|moeda',
     '# Se não quiser nome, pode deixar só a URL.',
+    '# Moeda opcional: Zeny, Hero Points ou Moeda RMT.',
     ''
   ];
 
   for (const shop of shops) {
     const name = (shop.name || '').trim();
     const url = (shop.url || '').trim();
+    const currency = (shop.currency || '').trim();
     if (!url) {
       continue;
     }
-    lines.push(name ? `${name}|${url}` : url);
+    if (name || currency) {
+      lines.push(`${name}|${url}|${currency}`);
+    } else {
+      lines.push(url);
+    }
   }
 
   fs.writeFileSync(SHOP_FILE, `${lines.join('\n').trim()}\n`, 'utf8');
@@ -73,7 +80,8 @@ function saveShops(shops) {
 function normalizeShop(shop) {
   return {
     name: (shop?.name || '').trim(),
-    url: (shop?.url || '').trim()
+    url: (shop?.url || '').trim(),
+    currency: (shop?.currency || '').trim()
   };
 }
 

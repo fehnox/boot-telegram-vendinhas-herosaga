@@ -10,6 +10,13 @@ const template = document.getElementById('shop-row-template');
 const pageButtons = [...document.querySelectorAll('.page-tab')];
 const pagePanels = [...document.querySelectorAll('.page-panel')];
 
+const shopCurrencyOptions = [
+  { value: '', label: 'Automático' },
+  { value: 'Zeny', label: 'Zeny' },
+  { value: 'Hero Points', label: 'Hero Points' },
+  { value: 'Moeda RMT', label: 'Moeda RMT' }
+];
+
 const envFields = [
   'TOKEN',
   'CHAT_ID',
@@ -135,16 +142,20 @@ function setActivePage(pageName) {
   }
 }
 
-function addShopRow(shop = { name: '', url: '' }) {
+function addShopRow(shop = { name: '', url: '', currency: '' }) {
   const fragment = template.content.cloneNode(true);
   const row = fragment.querySelector('.shop-row');
   const nameInput = fragment.querySelector('.shop-name');
   const urlInput = fragment.querySelector('.shop-url');
+  const currencySelect = fragment.querySelector('.shop-currency');
   const saveBtn = fragment.querySelector('.save-shop-btn');
   const removeBtn = fragment.querySelector('.remove-shop-btn');
 
   nameInput.value = shop.name || '';
   urlInput.value = shop.url || '';
+  if (currencySelect) {
+    currencySelect.value = shop.currency || '';
+  }
   setRowSavedState(row, Boolean((shop.name || '').trim() || (shop.url || '').trim()), shop.url ? 'Lojinha salva' : 'Lojinha não salva');
 
   const refresh = () => {
@@ -153,6 +164,9 @@ function addShopRow(shop = { name: '', url: '' }) {
   };
   nameInput.addEventListener('input', refresh);
   urlInput.addEventListener('input', refresh);
+  if (currencySelect) {
+    currencySelect.addEventListener('change', refresh);
+  }
 
   saveBtn.addEventListener('click', async () => {
     const err = validateShops(collectShops());
@@ -193,7 +207,8 @@ function collectShops() {
   return [...shopsList.querySelectorAll('.shop-row')]
     .map((row) => ({
       name: row.querySelector('.shop-name')?.value?.trim() || '',
-      url: row.querySelector('.shop-url')?.value?.trim() || ''
+      url: row.querySelector('.shop-url')?.value?.trim() || '',
+      currency: row.querySelector('.shop-currency')?.value?.trim() || ''
     }))
     .filter((shop) => shop.url);
 }

@@ -206,6 +206,7 @@ def format_sale_price(price: str | None, currency: str) -> str:
 class StoreTarget:
     name: str
     url: str
+    currency: str = ""
 
 
 def parse_store_target(line: str, index: int) -> StoreTarget | None:
@@ -214,17 +215,19 @@ def parse_store_target(line: str, index: int) -> StoreTarget | None:
         return None
 
     if "|" in raw:
-        parts = [part.strip() for part in raw.split("|", 1)]
+        parts = [part.strip() for part in raw.split("|")]
         name = parts[0] or f"loja-{index}"
-        url = parts[1]
+        url = parts[1] if len(parts) > 1 else ""
+        currency = parts[2] if len(parts) > 2 else ""
     else:
         name = f"loja-{index}"
         url = raw
+        currency = ""
 
     if not url:
         return None
 
-    return StoreTarget(name=name, url=url)
+    return StoreTarget(name=name, url=url, currency=currency)
 
 
 def load_store_targets() -> list[StoreTarget]:
@@ -257,6 +260,19 @@ def load_store_targets() -> list[StoreTarget]:
 
     fallback = (os.getenv("SHOP_URL", DEFAULT_SHOP_URL) or DEFAULT_SHOP_URL).strip()
     return [StoreTarget(name="loja-1", url=fallback)]
+
+
+def resolve_currency(target: StoreTarget, item_name: str, inventory: dict[str, "ShopItem"], price: str | None = None) -> str:
+    configured_currency = normalize_sale_currency_label(target.currency)
+    if configured_currency != "Não identificado":
+        return configured_currency
+
+    detected_currency = detect_currency_for_sale(item_name, inventory)
+    if detected_currency != "Não identificado":
+        return normalize_sale_currency_label(detected_currency)
+
+    price_currency = detect_currency_for_price(price)
+    return normalize_sale_currency_label(price_currency)
 
 
 STORE_TARGETS = load_store_targets()
@@ -829,11 +845,11 @@ def inspect_store(target: StoreTarget, history: dict) -> dict:
         item = inventory.get(item_key)
         item_name = item.name if item else item_key
         logger.info("Item encontrado: %s | quantidade=%s", item_name, qty)
-        currency = detect_currency_for_sale(item_name, inventory)
+        currency = resolve_currency(target, item_name, inventory, price=item.price if item else None)
         if currency == "Não identificado":
             cached_currency = items_meta.get(item_key, {}).get("currency")
             if cached_currency:
-                currency = cached_currency
+                currency = normalize_sale_currency_label(cached_currency)
 
         items_meta[item_key] = {
             "price": item.price if item else None,
@@ -850,9 +866,9 @@ def inspect_store(target: StoreTarget, history: dict) -> dict:
             alert_key = f"{target.url}:{item_key}"
             if should_alert(last_alerts, alert_key, now_ts):
                 sale_meta = items_meta.get(item_key, {})
-                sale_currency = detect_currency_for_sale(item_name, inventory)
+                sale_currency = resolve_currency(target, item_name, inventory, price=(item.price if item else None) or sale_meta.get("price"))
                 if sale_currency == "Não identificado":
-                    sale_currency = sale_meta.get("currency", "Não identificado")
+                    sale_currency = normalize_sale_currency_label(sale_meta.get("currency", "Não identificado"))
                 if notify_sale(
                     target,
                     item_name,
@@ -882,9 +898,9 @@ def inspect_store(target: StoreTarget, history: dict) -> dict:
         sale_meta = items_meta.get(item_key, {})
         alert_key = f"{target.url}:{item_key}"
         if should_alert(last_alerts, alert_key, now_ts):
-            sale_currency = detect_currency_for_sale(item_name, inventory)
+            sale_currency = resolve_currency(target, item_name, inventory, price=(item.price if item else None) or sale_meta.get("price"))
             if sale_currency == "Não identificado":
-                sale_currency = sale_meta.get("currency", "Não identificado")
+                sale_currency = normalize_sale_currency_label(sale_meta.get("currency", "Não identificado"))
             if notify_sale(
                 target,
                 item_name,
