@@ -1,7 +1,7 @@
 # Formato: nome|url
 # Se não quiser nome, pode deixar só a URL.
 
-Lojinha 2|https://herosaga.com.br/?module=vending&action=viewshop&id=35829
-Lojinha 1|https://herosaga.com.br/?module=vending&action=viewshop&id=35853
 Lojinha 4|https://herosaga.com.br/?module=vending&action=viewshop&id=35549
-Lojinha 3|https://herosaga.com.br/?module=vending&action=viewshop&id=36110
+Lojinha 1|https://herosaga.com.br/?module=vending&action=viewshop&id=36768
+Lojinha 2|https://herosaga.com.br/?module=vending&action=viewshop&id=36775
+Lojinha 3|https://herosaga.com.br/?module=vending&action=viewshop&id=36777
