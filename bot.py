@@ -815,6 +815,8 @@ def inspect_store(target: StoreTarget, history: dict) -> dict:
         prev = quantities.get(item_key)
         if prev is None:
             continue
+        if prev == 0:
+            continue
 
         item = inventory.get(item_key)
         item_name = item.name if item else item_key
