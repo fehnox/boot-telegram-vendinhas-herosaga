@@ -588,16 +588,26 @@
     },
     "https://herosaga.com.br/?module=vending&action=viewshop&id=35549": {
       "quantities": {
-        "Letterster Card": 1,
-        "Ice Seahorse Card": 1,
-        "Jormungandr Guardian Card": 1,
-        "Yoster Fixer Card": 1,
-        "Hallucigenia Card": 1,
-        "Intermediate Rgan Card": 2,
-        "Calmaring Card": 3,
-        "Icewind's Egg Card": 1,
-        "Ash Hopper Card": 1,
-        "Superior Rgan Shaman Card": 1
+        "Letterster Card": 0,
+        "Ice Seahorse Card": 0,
+        "Jormungandr Guardian Card": 0,
+        "Yoster Fixer Card": 0,
+        "Hallucigenia Card": 0,
+        "Intermediate Rgan Card": 0,
+        "Calmaring Card": 0,
+        "Icewind's Egg Card": 0,
+        "Ash Hopper Card": 0,
+        "Superior Rgan Shaman Card": 0,
+        "300509": 1,
+        "300512": 1,
+        "300460": 1,
+        "300515": 1,
+        "300374": 1,
+        "300368": 2,
+        "300364": 3,
+        "300456": 1,
+        "300218": 1,
+        "300462": 1
       },
       "last_alerts": {},
       "items_meta": {
@@ -650,6 +660,56 @@
           "price": "4,500 c",
           "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300462?nocache=1134513524",
           "currency": "Não identificado"
+        },
+        "300509": {
+          "price": "10,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300509?nocache=408984124",
+          "currency": "Hero Points"
+        },
+        "300512": {
+          "price": "3,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300512?nocache=84846729",
+          "currency": "Hero Points"
+        },
+        "300460": {
+          "price": "1,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300460?nocache=2109482749",
+          "currency": "Hero Points"
+        },
+        "300515": {
+          "price": "1,500 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300515?nocache=1263220555",
+          "currency": "Hero Points"
+        },
+        "300374": {
+          "price": "600 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300374?nocache=1727164811",
+          "currency": "Hero Points"
+        },
+        "300368": {
+          "price": "3,500 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300368?nocache=1257050930",
+          "currency": "Hero Points"
+        },
+        "300364": {
+          "price": "7,500 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300364?nocache=2104678027",
+          "currency": "Hero Points"
+        },
+        "300456": {
+          "price": "3,500 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300456?nocache=57907845",
+          "currency": "Hero Points"
+        },
+        "300218": {
+          "price": "13,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300218?nocache=2055928695",
+          "currency": "Hero Points"
+        },
+        "300462": {
+          "price": "4,500 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=300462?nocache=1184326910",
+          "currency": "Hero Points"
         }
       }
     },
@@ -692,12 +752,18 @@
     },
     "https://herosaga.com.br/?module=vending&action=viewshop&id=36768": {
       "quantities": {
-        "Relapse Blade": 1,
-        "Relapse Dagger": 1,
-        "Relapse Cross": 1,
-        "Relapse Axe": 1,
-        "Relapse Katar": 1,
-        "Poenitentia Scipione": 1
+        "Relapse Blade": 0,
+        "Relapse Dagger": 0,
+        "Relapse Cross": 0,
+        "Relapse Axe": 0,
+        "Relapse Katar": 0,
+        "Poenitentia Scipione": 0,
+        "500018": 1,
+        "510026": 1,
+        "590015": 1,
+        "620005": 1,
+        "610015": 1,
+        "590103": 1
       },
       "last_alerts": {},
       "items_meta": {
@@ -730,17 +796,53 @@
           "price": "15,000 c",
           "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=590103?nocache=2047550548",
           "currency": "Não identificado"
+        },
+        "500018": {
+          "price": "400 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=500018?nocache=1911181352",
+          "currency": "Hero Points"
+        },
+        "510026": {
+          "price": "400 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=510026?nocache=1687824342",
+          "currency": "Hero Points"
+        },
+        "590015": {
+          "price": "400 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=590015?nocache=313937248",
+          "currency": "Hero Points"
+        },
+        "620005": {
+          "price": "400 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=620005?nocache=1046170935",
+          "currency": "Hero Points"
+        },
+        "610015": {
+          "price": "400 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=610015?nocache=251562969",
+          "currency": "Hero Points"
+        },
+        "590103": {
+          "price": "15,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=590103?nocache=1180951549",
+          "currency": "Hero Points"
         }
       }
     },
     "https://herosaga.com.br/?module=vending&action=viewshop&id=36775": {
       "quantities": {
-        "Wigner Premium Exchange Ticket": 1250,
-        "Divine Cat Whiskers": 397,
-        "Pó de Éter": 3817,
-        "Asas de Himavanta": 1,
-        "Yoyo de Estimação": 1,
-        "Aura Poder Elétrico Obscuro": 1
+        "Wigner Premium Exchange Ticket": 0,
+        "Divine Cat Whiskers": 0,
+        "Pó de Éter": 0,
+        "Asas de Himavanta": 0,
+        "Yoyo de Estimação": 0,
+        "Aura Poder Elétrico Obscuro": 0,
+        "1001618": 1250,
+        "1001217": 397,
+        "1000322": 2307,
+        "20619": 1,
+        "20296": 1,
+        "46015": 1
       },
       "last_alerts": {},
       "items_meta": {
@@ -773,16 +875,51 @@
           "price": "25,000 c",
           "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=46015?nocache=1199867824",
           "currency": "Não identificado"
+        },
+        "1001618": {
+          "price": "20 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1001618?nocache=1729797400",
+          "currency": "Hero Points"
+        },
+        "1001217": {
+          "price": "1 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1001217?nocache=1984059583",
+          "currency": "Hero Points"
+        },
+        "1000322": {
+          "price": "1 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1000322?nocache=1308756148",
+          "currency": "Hero Points"
+        },
+        "20619": {
+          "price": "25,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=20619?nocache=1260876141",
+          "currency": "Hero Points"
+        },
+        "20296": {
+          "price": "10,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=20296?nocache=2120383923",
+          "currency": "Hero Points"
+        },
+        "46015": {
+          "price": "25,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=46015?nocache=55411439",
+          "currency": "Hero Points"
         }
       }
     },
     "https://herosaga.com.br/?module=vending&action=viewshop&id=36777": {
       "quantities": {
-        "Encantamento Ressonância Ancestral": 1,
-        "Encantamento Amplificar Poder": 1,
-        "Pó de Éter": 1,
-        "Brilliant Light Sapphire Ring": 1,
-        "Brilliant Light Sapphire Necklace": 1
+        "Encantamento Ressonância Ancestral": 0,
+        "Encantamento Amplificar Poder": 0,
+        "Pó de Éter": 0,
+        "Brilliant Light Sapphire Ring": 0,
+        "Brilliant Light Sapphire Necklace": 0,
+        "1001252": 1,
+        "55605": 1,
+        "1000322": 1,
+        "490064": 1,
+        "490065": 1
       },
       "last_alerts": {},
       "items_meta": {
@@ -810,6 +947,31 @@
           "price": "6,000 c",
           "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=490065?nocache=1524554847",
           "currency": "Não identificado"
+        },
+        "1001252": {
+          "price": "6,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1001252?nocache=663687157",
+          "currency": "Hero Points"
+        },
+        "55605": {
+          "price": "6,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=55605?nocache=39214251",
+          "currency": "Hero Points"
+        },
+        "1000322": {
+          "price": "1 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=1000322?nocache=2102288518",
+          "currency": "Hero Points"
+        },
+        "490064": {
+          "price": "6,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=490064?nocache=1791970328",
+          "currency": "Hero Points"
+        },
+        "490065": {
+          "price": "6,000 c",
+          "image_url": "https://herosaga.com.br/?module=image&action=processicon&id=490065?nocache=1628417168",
+          "currency": "Hero Points"
         }
       }
     }
